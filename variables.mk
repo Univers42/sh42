@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    variables.mk                                       :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
+#    By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:04:34 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/24 00:41:47 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/24 01:06:42 by syzygy           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,4 +39,3 @@ CFLAGS			:=	$(STD) $(WARN_FLAGS) $(DEBFLAGS) $(CPPFLAGS) $(ANAFLAGS)
 
 # Linker flags
 LDFLAGS			:=	-lreadline -pthread -lm $(ANAFLAGS)
-
