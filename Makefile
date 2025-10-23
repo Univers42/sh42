@@ -6,7 +6,7 @@
 #    By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/24 01:33:25 by syzygy           ###   ########.fr        #
+#    Updated: 2025/10/24 01:47:06 by syzygy           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,10 +25,11 @@ include variables.mk
 
 SRCDIR := srcs
 OBJDIR := .objs
+DEPDIR := .deps
 
 SRCS := $(shell find $(SRCDIR) -type f -name '*.c' -print)
 OBJS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
-DEPS := $(OBJS:.o=.d)
+DEPS := $(patsubst $(OBJDIR)/%.o,$(DEPDIR)/%.d,$(OBJS))
 
 # detect libft archive at link-time (evaluated when used)
 LIBFT_A = $(firstword $(wildcard $(SUBMODULE_DIR)/libft.a $(SUBMODULE_DIR)/build/libft.a $(SUBMODULE_DIR)/lib/libft.a))
@@ -75,11 +76,10 @@ $(SUBMODULE_LIB):
 		exit 0; \
 	fi
 
-# Build static library from all project objects, then remove objects for a clean build dir
+# Build static library from all project objects
 $(MINISHELL_A): $(OBJS)
 	@echo "[AR] $@"
 	@ar rcs $@ $(OBJS)
-	@rm -rf $(OBJDIR)
 
 # Link the final binary from your static lib and libft
 $(NAME): $(LIBFT_STAMP) $(MINISHELL_A)
@@ -89,9 +89,9 @@ $(NAME): $(LIBFT_STAMP) $(MINISHELL_A)
 
 # Compile C source to object files and emit dependency files
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $@) $(DEPDIR)/$(dir $*)
 	$(call print_status,$(CYAN),COMPILING,$<)
-	@$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@ $(PREPROCFLAGS) $(patsubst %.o,%.d,$@) -I$(SUBMODULE_DIR)/include -I./incs
+	@$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@ -MMD -MP -MF $(DEPDIR)/$*.d -I$(SUBMODULE_DIR)/include -I./incs
 
 # Include dependency files if present
 -include $(DEPS)
@@ -99,6 +99,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 clean:
 	$(call print_status,$(RED),CLEAN,Removing objects and archives)
 	@rm -rf $(OBJDIR)
+	@rm -rf $(DEPDIR)
 	@rm -f .libft.stamp
 	@rm -f $(MINISHELL_A)
 
