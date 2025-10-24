@@ -17,38 +17,38 @@ timestamp() {
 }
 
 log_hr() {
-	echo -e "${BOLD}--------------------------------------------------${NC}" | tee -a "$LOG_DIR/hook.log"
+	/bin/echo -e "${BOLD}--------------------------------------------------${NC}" | tee -a "$LOG_DIR/hook.log"
 }
 
 log_broadcast() {
 	title="$1"
 	log_hr
-	echo -e "${GREEN}${BOLD}${title} [$(timestamp)]${NC}" | tee -a "$LOG_DIR/hook.log"
+	/bin/echo -e "${GREEN}${BOLD}${title} [$(timestamp)]${NC}" | tee -a "$LOG_DIR/hook.log"
 	log_hr
 }
 
 log_info() {
-	echo -e "  ${BLUE}[INFO]${NC} $*" | tee -a "$LOG_DIR/hook.log"
+	/bin/echo -e "  ${BLUE}[INFO]${NC} $*" | tee -a "$LOG_DIR/hook.log"
 }
 
 log_error() {
-	echo -e "  ${RED}[ERROR]${NC} $*" | tee -a "$LOG_DIR/hook.log" >&2
+	/bin/echo -e "  ${RED}[ERROR]${NC} $*" | tee -a "$LOG_DIR/hook.log" >&2
 }
 
 log_warn() {
-	echo -e "  ${YELLOW}[WARN]${NC} $*" | tee -a "$LOG_DIR/hook.log"
+	/bin/echo -e "  ${YELLOW}[WARN]${NC} $*" | tee -a "$LOG_DIR/hook.log"
 }
 
 log_success() {
-	echo -e "  ${GREEN}[SUCCESS]${NC} $*" | tee -a "$LOG_DIR/hook.log"
+	/bin/echo -e "  ${GREEN}[SUCCESS]${NC} $*" | tee -a "$LOG_DIR/hook.log"
 }
 
 log_hook() {
 	hook="$1"
 	shift
-	echo -e "  ${GREEN}[$hook]${NC} $*" | tee -a "$LOG_DIR/hook.log"
+	/bin/echo -e "  ${GREEN}[$hook]${NC} $*" | tee -a "$LOG_DIR/hook.log"
 }
 
 log_example() {
-	echo -e "  ${BOLD}${GREEN}[EXAMPLE]${NC} $*" | tee -a "$LOG_DIR/hook.log"
+	/bin/echo -e "  ${BOLD}${GREEN}[EXAMPLE]${NC} $*" | tee -a "$LOG_DIR/hook.log"
 }
