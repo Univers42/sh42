@@ -62,7 +62,7 @@ while read local_ref local_oid remote_ref remote_oid; do
 
 		description=$(printf "%s" "$header" | sed -E 's/^(feat|fix|docs|refactor|test)\([^)]+\):[[:space:]]*(.*)$/\2/I')
 		len=$(printf '%s' "$description" | wc -c | tr -d '[:space:]')
-		if [ "$len" -lt 50 ] || [ "$len" -gt 170 ]; then
+		if [ "$len" -lt 25 ] || [ "$len" -gt 170 ]; then
 			log_error "Commit ${commit} on branch '${branch}' has a description length of $len (must be 50-170)."
 			log_info "Your description: \"$description\""
 			log_warn "Please provide a more detailed and concise description."

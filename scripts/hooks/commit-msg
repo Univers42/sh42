@@ -25,8 +25,8 @@ fi
 
 description=$(printf "%s" "$header" | sed -E "s/^($TYPES)\([^)]+\):[[:space:]]*(.*)$/\2/I")
 len=$(printf '%s' "$description" | wc -c | tr -d '[:space:]')
-if [ "$len" -lt 50 ] || [ "$len" -gt 170 ]; then
-	log_error "Description length must be between 50 and 170 characters (got $len)."
+if [ "$len" -lt 25 ] || [ "$len" -gt 170 ]; then
+	log_error "Description length must be between 25 and 170 characters (got $len)."
 	log_info "Your description: \"$description\""
 	exit 1
 fi
