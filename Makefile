@@ -6,7 +6,7 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/24 13:10:48 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/24 18:51:30 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,6 +22,7 @@ SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
 include variables.mk
 -include libft/build/colors.mk
 -include libft/build/common.mk
+-include libft/build/debug.mk
 
 SRCDIR := srcs
 OBJDIR := .objs
@@ -43,8 +44,10 @@ all: $(NAME)
 LIBFT_STAMP := .libft.stamp
 
 $(LIBFT_STAMP): $(SUBMODULE_LIB)
-	@echo "[deps] libft.a is now available"
-	@touch $@
+	@if [ ! -f "$@" ]; then \
+		echo "[deps] libft.a is now available"; \
+		touch $@; \
+	fi
 
 $(SUBMODULE_LIB):
 	echo "[DEPS] ensuring libft.a..."
@@ -98,18 +101,22 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 
 clean:
 	$(call print_status,$(RED),CLEAN,Removing objects and archives)
-	@rm -rf $(OBJDIR)
-	@rm -rf $(DEPDIR)
-	@rm -f .libft.stamp
-	@rm -f $(MINISHELL_A)
+	@rm -rf $(OBJDIR) $(DEPDIR) $(MINISHELL_A)
+	$(call log_info,$(NAME) cleaned up : you can use $(BOLD_CYAN)$(UNDERLINE)$(ITALIC)$(NAME)$(RESET))
 
 fclean: clean
-	$(call print_status,$(RED),CLEAN,Removing binary)
-	@rm -f $(NAME)
+	$(call print_status,$(RED),FCLEAN,Removing binary)
+	@rm -f $(NAME) .libft.stamp
+	$(call log_warn,$(NAME) cleaned up : you cannot use anymore $(NAME), you have to)
+
+ffclean: fclean
+	$(call print_status,$(RED),FFCLEAN,Removing all gen files)
 	@if [ -d "$(SUBMODULE_DIR)" ]; then					\
 		$(MAKE) -C $(SUBMODULE_DIR) fclean || true;		\
 	fi
+	$(call log_ok, the libft.a was erased succesfully)
+	$(call log_note, use $(GREEN)make$(RESET) to start the project)
 
 re: fclean all
 
-.PHONY: all libft-a clean fclean re
+.PHONY: all clean fclean ffclean re
