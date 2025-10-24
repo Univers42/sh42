@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+         #
+#    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/24 01:47:06 by syzygy           ###   ########.fr        #
+#    Updated: 2025/10/24 13:10:48 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ SUBMODULE_DIR := libft
 SUBMODULE_REPO := git@github.com:Univers42/libft.git
 SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
 
-.PHONY: all libft-a clean fclean re
+
 
 include variables.mk
 -include libft/build/colors.mk
@@ -47,33 +47,33 @@ $(LIBFT_STAMP): $(SUBMODULE_LIB)
 	@touch $@
 
 $(SUBMODULE_LIB):
-	@echo "[deps] ensuring libft.a..."
-	@if [ -f "$(SUBMODULE_LIB)" ]; then \
-		echo "[deps] libft.a found: $(SUBMODULE_LIB)"; \
-	else \
-		if [ -d "$(SUBMODULE_DIR)" ]; then \
-			if [ -f "$(SUBMODULE_DIR)/Makefile" ]; then \
-				echo "[deps] building libft in $(SUBMODULE_DIR)"; \
-				$(MAKE) -C $(SUBMODULE_DIR) || true; \
-			else \
-				echo "[deps] libft directory exists but no Makefile — cannot build automatically"; \
-			fi; \
-		else \
-			echo "[deps] libft not present — trying to init submodule"; \
-			git submodule update --init --recursive $(SUBMODULE_DIR) || git submodule add $(SUBMODULE_REPO) $(SUBMODULE_DIR) || true; \
-			if [ -f "$(SUBMODULE_DIR)/Makefile" ]; then \
-				echo "[deps] building libft in $(SUBMODULE_DIR)"; \
-				$(MAKE) -C $(SUBMODULE_DIR) || true; \
-			fi; \
-		fi; \
-	fi; \
-	if [ ! -f "$(SUBMODULE_LIB)" ]; then \
-		echo "[deps] libft.a still missing — continuing without libft (link may fail)"; \
-	fi; \
-	if [ -z "$$MAKE_RESTARTED" ] && { [ -f "$(SUBMODULE_DIR)/build/common.mk" ] || [ -f "$(SUBMODULE_DIR)/build/colors.mk" ]; }; then \
-		echo "[deps] libft: build helpers available; re-running make to load them (once)"; \
-		$(MAKE) MAKE_RESTARTED=1 all; \
-		exit 0; \
+	echo "[DEPS] ensuring libft.a..."
+	@if [ -f "$(SUBMODULE_LIB)" ]; then																										\
+		echo "[deps] libft.a found: $(SUBMODULE_LIB)";																						\
+	else 																																	\
+		if [ -d "$(SUBMODULE_DIR)" ]; then																									\
+			if [ -f "$(SUBMODULE_DIR)/Makefile" ]; then																						\
+				echo "[deps] building libft in $(SUBMODULE_DIR)";																			\
+				$(MAKE) -C $(SUBMODULE_DIR) || true;																						\
+			else																															\
+				echo "[deps] libft directory exists but no Makefile — cannot build automatically";											\
+			fi;																																\
+		else 																																\
+			echo "[deps] libft not present — trying to init submodule"; 																	\
+			git submodule update --init --recursive $(SUBMODULE_DIR) || git submodule add $(SUBMODULE_REPO) $(SUBMODULE_DIR) || true;		\
+			if [ -f "$(SUBMODULE_DIR)/Makefile" ]; then 																					\
+				echo "[deps] building libft in $(SUBMODULE_DIR)";																			\
+				$(MAKE) -C $(SUBMODULE_DIR) || true;																						\
+			fi;																																\
+		fi;																																	\
+	fi;																																		\
+	if [ ! -f "$(SUBMODULE_LIB)" ]; then																									\
+		echo "[deps] libft.a still missing — continuing without libft (link may fail)";														\
+	fi;																																		\
+	if [ -z "$$MAKE_RESTARTED" ] && { [ -f "$(SUBMODULE_DIR)/build/common.mk" ] || [ -f "$(SUBMODULE_DIR)/build/colors.mk" ]; }; then		\
+		echo "[deps] libft: build helpers available; re-running make to load them (once)";													\
+		$(MAKE) MAKE_RESTARTED=1 all;																										\
+		exit 0;																																\
 	fi
 
 # Build static library from all project objects
@@ -91,7 +91,7 @@ $(NAME): $(LIBFT_STAMP) $(MINISHELL_A)
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -p $(dir $@) $(DEPDIR)/$(dir $*)
 	$(call print_status,$(CYAN),COMPILING,$<)
-	@$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@ -MMD -MP -MF $(DEPDIR)/$*.d -I$(SUBMODULE_DIR)/include -I./incs
+	@$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@ $(PREPROCFLAGS) $(DEPDIR)/$*.d -I$(SUBMODULE_DIR)/include -I./incs
 
 # Include dependency files if present
 -include $(DEPS)
@@ -106,8 +106,10 @@ clean:
 fclean: clean
 	$(call print_status,$(RED),CLEAN,Removing binary)
 	@rm -f $(NAME)
-	@if [ -d "$(SUBMODULE_DIR)" ]; then $(MAKE) -C $(SUBMODULE_DIR) fclean || true; fi
+	@if [ -d "$(SUBMODULE_DIR)" ]; then					\
+		$(MAKE) -C $(SUBMODULE_DIR) fclean || true;		\
+	fi
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all libft-a clean fclean re
