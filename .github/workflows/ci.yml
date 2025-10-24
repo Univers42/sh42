@@ -7,7 +7,7 @@ on:
       - develop
   pull_request:
     branches:
-      - 
+      - feat/config_project
 
 jobs:
   build:
