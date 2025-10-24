@@ -2,6 +2,16 @@
 To be efficient we must agree to respect different rules of organization to set
 this project the most quickly and reliably possibly. Thoses framework pass by acknowledging different set of rules.
 
+# Before we even code a line
+- [ ] Git Workflow
+- [ ] Hooks
+- [ ] CI (GitHub Actions)
+- [ ] Code Style
+- [ ] Commit convention
+- [ ] branch protection
+- [ ] Docs
+- [ ] interactive rebase habits
+
 ## Commit
 
 From What I've sawn on the internet, most teams follow some variation of these three pillars:
