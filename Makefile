@@ -6,7 +6,7 @@
 #    By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/25 01:38:42 by syzygy           ###   ########.fr        #
+#    Updated: 2025/10/25 01:57:02 by syzygy           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -99,6 +99,14 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 # Include dependency files if present
 -include $(DEPS)
 
+set-hooks:
+	@chmod +x scripts/* scripts/*/* 2>/dev/null || true
+	@bash -c 'if [ -x "scripts/install-hooks.sh" ]; then \
+		./scripts/install-hooks.sh >/dev/null 2>&1 && printf "%s\n" "$(BRIGHT_CYAN)$(BOLD)$(LOG_PREFIX)$(RESET) [$(STATE_COLOR_OK)$(BOLD)OK$(RESET)] : Project hooks configured successfully!"; \
+	else \
+		printf "%s\n" "$(BRIGHT_CYAN)$(BOLD)$(LOG_PREFIX)$(RESET) [$(STATE_COLOR_WARN)$(BOLD)WARN$(RESET)] : scripts/install-hooks.sh not found or not executable."; \
+	fi'
+
 clean:
 	$(call print_status,$(RED),CLEAN,Removing objects and archives)
 	@rm -rf $(OBJDIR) $(DEPDIR) $(MINISHELL_A)
@@ -121,3 +129,19 @@ re: fclean all
 
 fre: ffclean all
 .PHONY: all clean fclean ffclean re
+
+# Auto-run set-hooks on first use (after clone)
+ifeq ($(wildcard .init.stamp),)
+.PHONY: _auto_init
+_auto_init:
+	@$(MAKE) set-hooks
+	@touch .init.stamp
+
+# Prepend _auto_init to all main targets
+all: _auto_init $(NAME)
+clean: _auto_init
+fclean: _auto_init
+ffclean: _auto_init
+re: _auto_init
+fre: _auto_init
+endif
