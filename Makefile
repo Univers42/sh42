@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
+#    By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/24 18:51:30 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/25 01:38:42 by syzygy           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -119,4 +119,5 @@ ffclean: fclean
 
 re: fclean all
 
+fre: ffclean all
 .PHONY: all clean fclean ffclean re
