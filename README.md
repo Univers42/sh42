@@ -78,4 +78,11 @@ Each hooks from the hidden files [git](./.git/hooks), are component that is conf
 - update
 
 # RESSOURCES
-[to know more about readline](https://tiswww.case.edu/php/chet/readline/readline.html#Searching)
+
+**about workflow:**
+- [workflow-github-action syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)
+- [learn_yml](https://learnxinyminutes.com/yaml/)
+**about system:**
+- [readline](https://tiswww.case.edu/php/chet/readline/readline.html#Searching)
+
+**about something else:**
