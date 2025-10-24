@@ -3,8 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - main
-      - develop
+      - feat/config_project
   pull_request:
     branches:
       - feat/config_project
@@ -26,7 +25,7 @@ jobs:
 
       - name: Build project
         run: |
-          make  # Run make to compile the project
+          make re
 
       - name: Run tests (if any)
         run: |
