@@ -33,4 +33,12 @@ for hook in "${!HOOK_MAP[@]}"; do
 	fi
 done
 
-echo "All hooks reset and symlinked to .git/hooks/."
+# Symlink log_hook.sh for sourcing in hooks
+if [ -f "$HOOKS_SRC/log_hook.sh" ]; then
+	ln -sf "$HOOKS_SRC/log_hook.sh" "$HOOKS_DST/log_hook.sh"
+	echo "Symlinked $HOOKS_DST/log_hook.sh -> $HOOKS_SRC/log_hook.sh"
+else
+	echo "Source log_hook.sh not found: $HOOKS_SRC/log_hook.sh"
+fi
+
+echo "All hooks and log_hook.sh reset and symlinked to .git/hooks/."
