@@ -12,7 +12,7 @@ if [ ! -d "$HOOKS_DIR" ]; then
 fi
 
 # Make the two hooks executable if they exist
-for h in pre-commit pre-push.sh pre-push; do
+for h in pre-commit pre-push.sh pre-push commit-msg; do
 	if [ -f "$HOOKS_DIR/$h" ]; then
 		chmod +x "$HOOKS_DIR/$h"
 		printf "chmod +x %s\n" "$HOOKS_DIR/$h"
