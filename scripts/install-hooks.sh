@@ -1,25 +1,36 @@
-#!/bin/sh
-# Make repository hooks executable and ensure git uses .git/hooks
-set -e
+#!/bin/bash
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-HOOKS_DIR="$REPO_ROOT/.git/hooks"
+HOOKS_SRC="$REPO_ROOT/scripts/hooks"
+HOOKS_DST="$REPO_ROOT/.git/hooks"
 
-# Ensure hooks directory exists
-if [ ! -d "$HOOKS_DIR" ]; then
-	printf "ERROR: hooks dir not found: %s\n" "$HOOKS_DIR" >&2
-	exit 1
-fi
+declare -A HOOK_MAP=(
+	["pre-commit"]="pre-commit"
+	["commit-msg"]="commit-msg"
+	["pre-push"]="pre-push"
+)
 
-# Make the two hooks executable if they exist
-for h in pre-commit pre-push.sh pre-push commit-msg; do
-	if [ -f "$HOOKS_DIR/$h" ]; then
-		chmod +x "$HOOKS_DIR/$h"
-		printf "chmod +x %s\n" "$HOOKS_DIR/$h"
+echo "Resetting hooks in $HOOKS_DST ..."
+
+for hook in "${!HOOK_MAP[@]}"; do
+	dst="$HOOKS_DST/$hook"
+	# Remove any existing file or symlink
+	if [ -e "$dst" ] || [ -L "$dst" ]; then
+		rm -f "$dst"
+		echo "Removed old hook: $dst"
 	fi
 done
 
-# Configure git to use .git/hooks explicitly (optional)
-git -C "$REPO_ROOT" config core.hooksPath "$HOOKS_DIR" || true
+for hook in "${!HOOK_MAP[@]}"; do
+	src="$HOOKS_SRC/${HOOK_MAP[$hook]}"
+	dst="$HOOKS_DST/$hook"
+	if [ -f "$src" ]; then
+		ln -sf "$src" "$dst"
+		chmod +x "$src"
+		echo "Symlinked $dst -> $src"
+	else
+		echo "Source hook not found: $src"
+	fi
+done
 
-printf "Hooks installed. Now try a failing commit to verify.\n"
+echo "All hooks reset and symlinked to .git/hooks/."
