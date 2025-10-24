@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 18:43:35 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/10/24 15:18:25 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/24 15:23:15 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,6 @@ int main(void)
 	}
 	printf("clear history\n");
 	printf("clear history\n");
-	rl_clear_history();dd
+	rl_clear_history();
 	return (0);
 }
