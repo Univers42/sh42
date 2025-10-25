@@ -6,7 +6,7 @@
 #    By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/24 01:47:06 by syzygy           ###   ########.fr        #
+#    Updated: 2025/10/25 01:57:02 by syzygy           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,11 +17,12 @@ SUBMODULE_DIR := libft
 SUBMODULE_REPO := git@github.com:Univers42/libft.git
 SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
 
-.PHONY: all libft-a clean fclean re
+
 
 include variables.mk
 -include libft/build/colors.mk
 -include libft/build/common.mk
+-include libft/build/debug.mk
 
 SRCDIR := srcs
 OBJDIR := .objs
@@ -43,37 +44,39 @@ all: $(NAME)
 LIBFT_STAMP := .libft.stamp
 
 $(LIBFT_STAMP): $(SUBMODULE_LIB)
-	@echo "[deps] libft.a is now available"
-	@touch $@
+	@if [ ! -f "$@" ]; then \
+		echo "[deps] libft.a is now available"; \
+		touch $@; \
+	fi
 
 $(SUBMODULE_LIB):
-	@echo "[deps] ensuring libft.a..."
-	@if [ -f "$(SUBMODULE_LIB)" ]; then \
-		echo "[deps] libft.a found: $(SUBMODULE_LIB)"; \
-	else \
-		if [ -d "$(SUBMODULE_DIR)" ]; then \
-			if [ -f "$(SUBMODULE_DIR)/Makefile" ]; then \
-				echo "[deps] building libft in $(SUBMODULE_DIR)"; \
-				$(MAKE) -C $(SUBMODULE_DIR) || true; \
-			else \
-				echo "[deps] libft directory exists but no Makefile — cannot build automatically"; \
-			fi; \
-		else \
-			echo "[deps] libft not present — trying to init submodule"; \
-			git submodule update --init --recursive $(SUBMODULE_DIR) || git submodule add $(SUBMODULE_REPO) $(SUBMODULE_DIR) || true; \
-			if [ -f "$(SUBMODULE_DIR)/Makefile" ]; then \
-				echo "[deps] building libft in $(SUBMODULE_DIR)"; \
-				$(MAKE) -C $(SUBMODULE_DIR) || true; \
-			fi; \
-		fi; \
-	fi; \
-	if [ ! -f "$(SUBMODULE_LIB)" ]; then \
-		echo "[deps] libft.a still missing — continuing without libft (link may fail)"; \
-	fi; \
-	if [ -z "$$MAKE_RESTARTED" ] && { [ -f "$(SUBMODULE_DIR)/build/common.mk" ] || [ -f "$(SUBMODULE_DIR)/build/colors.mk" ]; }; then \
-		echo "[deps] libft: build helpers available; re-running make to load them (once)"; \
-		$(MAKE) MAKE_RESTARTED=1 all; \
-		exit 0; \
+	echo "[DEPS] ensuring libft.a..."
+	@if [ -f "$(SUBMODULE_LIB)" ]; then																										\
+		echo "[deps] libft.a found: $(SUBMODULE_LIB)";																						\
+	else 																																	\
+		if [ -d "$(SUBMODULE_DIR)" ]; then																									\
+			if [ -f "$(SUBMODULE_DIR)/Makefile" ]; then																						\
+				echo "[deps] building libft in $(SUBMODULE_DIR)";																			\
+				$(MAKE) -C $(SUBMODULE_DIR) || true;																						\
+			else																															\
+				echo "[deps] libft directory exists but no Makefile — cannot build automatically";											\
+			fi;																																\
+		else 																																\
+			echo "[deps] libft not present — trying to init submodule"; 																	\
+			git submodule update --init --recursive $(SUBMODULE_DIR) || git submodule add $(SUBMODULE_REPO) $(SUBMODULE_DIR) || true;		\
+			if [ -f "$(SUBMODULE_DIR)/Makefile" ]; then 																					\
+				echo "[deps] building libft in $(SUBMODULE_DIR)";																			\
+				$(MAKE) -C $(SUBMODULE_DIR) || true;																						\
+			fi;																																\
+		fi;																																	\
+	fi;																																		\
+	if [ ! -f "$(SUBMODULE_LIB)" ]; then																									\
+		echo "[deps] libft.a still missing — continuing without libft (link may fail)";														\
+	fi;																																		\
+	if [ -z "$$MAKE_RESTARTED" ] && { [ -f "$(SUBMODULE_DIR)/build/common.mk" ] || [ -f "$(SUBMODULE_DIR)/build/colors.mk" ]; }; then		\
+		echo "[deps] libft: build helpers available; re-running make to load them (once)";													\
+		$(MAKE) MAKE_RESTARTED=1 all;																										\
+		exit 0;																																\
 	fi
 
 # Build static library from all project objects
@@ -91,23 +94,54 @@ $(NAME): $(LIBFT_STAMP) $(MINISHELL_A)
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -p $(dir $@) $(DEPDIR)/$(dir $*)
 	$(call print_status,$(CYAN),COMPILING,$<)
-	@$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@ -MMD -MP -MF $(DEPDIR)/$*.d -I$(SUBMODULE_DIR)/include -I./incs
+	@$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@ $(PREPROCFLAGS) $(DEPDIR)/$*.d -I$(SUBMODULE_DIR)/include -I./incs
 
 # Include dependency files if present
 -include $(DEPS)
 
+set-hooks:
+	@chmod +x scripts/* scripts/*/* 2>/dev/null || true
+	@bash -c 'if [ -x "scripts/install-hooks.sh" ]; then \
+		./scripts/install-hooks.sh >/dev/null 2>&1 && printf "%s\n" "$(BRIGHT_CYAN)$(BOLD)$(LOG_PREFIX)$(RESET) [$(STATE_COLOR_OK)$(BOLD)OK$(RESET)] : Project hooks configured successfully!"; \
+	else \
+		printf "%s\n" "$(BRIGHT_CYAN)$(BOLD)$(LOG_PREFIX)$(RESET) [$(STATE_COLOR_WARN)$(BOLD)WARN$(RESET)] : scripts/install-hooks.sh not found or not executable."; \
+	fi'
+
 clean:
 	$(call print_status,$(RED),CLEAN,Removing objects and archives)
-	@rm -rf $(OBJDIR)
-	@rm -rf $(DEPDIR)
-	@rm -f .libft.stamp
-	@rm -f $(MINISHELL_A)
+	@rm -rf $(OBJDIR) $(DEPDIR) $(MINISHELL_A)
+	$(call log_info,$(NAME) cleaned up : you can use $(BOLD_CYAN)$(UNDERLINE)$(ITALIC)$(NAME)$(RESET))
 
 fclean: clean
-	$(call print_status,$(RED),CLEAN,Removing binary)
-	@rm -f $(NAME)
-	@if [ -d "$(SUBMODULE_DIR)" ]; then $(MAKE) -C $(SUBMODULE_DIR) fclean || true; fi
+	$(call print_status,$(RED),FCLEAN,Removing binary)
+	@rm -f $(NAME) .libft.stamp
+	$(call log_warn,$(NAME) cleaned up : you cannot use anymore $(NAME), you have to)
+
+ffclean: fclean
+	$(call print_status,$(RED),FFCLEAN,Removing all gen files)
+	@if [ -d "$(SUBMODULE_DIR)" ]; then					\
+		$(MAKE) -C $(SUBMODULE_DIR) fclean || true;		\
+	fi
+	$(call log_ok, the libft.a was erased succesfully)
+	$(call log_note, use $(GREEN)make$(RESET) to start the project)
 
 re: fclean all
 
-.PHONY: all clean fclean re
+fre: ffclean all
+.PHONY: all clean fclean ffclean re
+
+# Auto-run set-hooks on first use (after clone)
+ifeq ($(wildcard .init.stamp),)
+.PHONY: _auto_init
+_auto_init:
+	@$(MAKE) set-hooks
+	@touch .init.stamp
+
+# Prepend _auto_init to all main targets
+all: _auto_init $(NAME)
+clean: _auto_init
+fclean: _auto_init
+ffclean: _auto_init
+re: _auto_init
+fre: _auto_init
+endif
