@@ -14,27 +14,92 @@ zero=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
 
 log_broadcast "PUSH SYSTEM - VALIDATION"
 
+# locate local git dir and possible override file (local only)
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || echo .git)"
+ALLOW_FILE="$GIT_DIR/allow_push"
+
+check_override() {
+	# return 0 if override accepted, 1 otherwise
+	if [ -f "$ALLOW_FILE" ]; then
+		secret="$(sed -n '1p' "$ALLOW_FILE" | tr -d '\r\n')"
+		if [ -n "$secret" ]; then
+			# env var override (non-interactive, CI)
+			if [ -n "$GIT_PUSH_OVERRIDE" ] && [ "$GIT_PUSH_OVERRIDE" = "$secret" ]; then
+				log_success "Push override accepted via GIT_PUSH_OVERRIDE."
+				return 0
+			fi
+			# interactive prompt via /dev/tty (works even when stdin isn't a TTY)
+			if [ -r /dev/tty ]; then
+				printf "Protected-branch push detected. Enter override password (input hidden): " > /dev/tty
+				stty -echo < /dev/tty || true
+				read -r input_pw < /dev/tty || input_pw=""
+				stty echo < /dev/tty || true
+				printf "\n" > /dev/tty
+				if [ "$input_pw" = "$secret" ]; then
+					log_success "Push override accepted."
+					return 0
+				else
+					log_warn "Incorrect override password."
+					return 1
+				fi
+			fi
+			# no tty and no env var match -> cannot override
+			return 1
+		fi
+	fi
+
+	# If no allow file present, support non-interactive override only via env var is meaningless;
+	# inform user how to enable override locally.
+	if [ -n "$GIT_PUSH_OVERRIDE" ]; then
+		log_warn "GIT_PUSH_OVERRIDE provided but no local allow file exists; override is disabled."
+	fi
+	return 1
+}
+
+# Confirm prompt helper: return 0 if allowed, 1 otherwise
+confirm_push() {
+	branch="$1"
+	# allow non-interactive auto-confirm via env (useful for CI)
+	if [ "${GIT_CONFIRM_PUSH:-}" = "yes" ] || [ "${GIT_CONFIRM_PUSH:-}" = "1" ]; then
+		log_info "GIT_CONFIRM_PUSH=yes detected; auto-allowing push to '$branch'."
+		return 0
+	fi
+	# interactive prompt via /dev/tty (works when git isn't feeding stdin)
+	if [ -r /dev/tty ]; then
+		printf "You are about to push to protected branch '%s'. Are you sure you want to continue? [y/N]: " "$branch" > /dev/tty
+		read -r answer < /dev/tty || answer=""
+		case "$answer" in
+			y|Y|yes|YES|Yes) 
+				log_info "User confirmed push to '$branch'."
+				return 0
+				;;
+			*)
+				log_warn "Push to protected branch '$branch' cancelled by user."
+				return 1
+				;;
+		esac
+	else
+		# no tty and no env var -> cannot confirm interactively
+		log_warn "Non-interactive environment detected and GIT_CONFIRM_PUSH not set; rejecting push to protected branch '$branch'."
+		return 1
+	fi
+}
+
 while read local_ref local_oid remote_ref remote_oid; do
 	branch="${local_ref##refs/heads/}"
 
 	for pb in "${PROTECTED_BRANCHES[@]}"; do
 		if [[ "$branch" == "$pb" ]]; then
-			log_error "Direct push to protected branch '$branch' is blocked for safety."
-			log_info "Protected branches: ${PROTECTED_BRANCHES[*]}"
-			log_warn "Please use a feature or topic branch and open a pull request."
-			log_info "How to safely redirect your changes from '$branch' to a feature branch:"
-			log_info "  1. Create a new branch from your current state:"
-			log_example "     git checkout -b my-feature-branch"
-			log_info "  2. Push your new branch to origin:"
-			log_example "     git push origin my-feature-branch"
-			log_info "  3. Open a pull request from 'my-feature-branch' to '$branch' on GitHub."
-			log_info "If you already committed to '$branch', you can use:"
-			log_example "     git checkout -b my-feature-branch"
-			log_example "     git push origin my-feature-branch"
-			log_info "Then reset '$branch' if needed:"
-			log_example "     git checkout $branch"
-			log_example "     git reset --hard origin/$branch"
-			exit 1
+			# ask user for confirmation instead of outright blocking
+			if confirm_push "$branch"; then
+				log_info "Proceeding with push to protected branch '$branch' after confirmation."
+				continue 2
+			else
+				log_error "Push to protected branch '$branch' denied."
+				log_info "Protected branches: ${PROTECTED_BRANCHES[*]}"
+				log_warn "Please push to a feature branch and open a pull request instead."
+				exit 1
+			fi
 		fi
 	done
 
@@ -63,7 +128,7 @@ while read local_ref local_oid remote_ref remote_oid; do
 		description=$(printf "%s" "$header" | sed -E 's/^(feat|fix|docs|refactor|test)\([^)]+\):[[:space:]]*(.*)$/\2/I')
 		len=$(printf '%s' "$description" | wc -c | tr -d '[:space:]')
 		if [ "$len" -lt 25 ] || [ "$len" -gt 170 ]; then
-			log_error "Commit ${commit} on branch '${branch}' has a description length of $len (must be 50-170)."
+			log_error "Commit ${commit} on branch '${branch}' has a description length of $len (must be 25-170)."
 			log_info "Your description: \"$description\""
 			log_warn "Please provide a more detailed and concise description."
 			exit 1

@@ -8,6 +8,8 @@ declare -A HOOK_MAP=(
 	["pre-commit"]="pre-commit"
 	["commit-msg"]="commit-msg"
 	["pre-push"]="pre-push"
+	["post-checkout"]="post-checkout"
+	["pre-merge-commit"]="pre-merge-commit"
 )
 
 echo "Resetting hooks in $HOOKS_DST ..."
