@@ -12,6 +12,9 @@ FORBIDDEN_WORDS="WIP, update, squash!, debug, temporary"
 
 zero=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
 
+# detect local committer email — we'll only validate commits authored by this user
+LOCAL_AUTHOR_EMAIL="$(git config user.email 2>/dev/null || true)"
+
 log_broadcast "PUSH SYSTEM - VALIDATION"
 
 # locate local git dir and possible override file (local only)
@@ -66,10 +69,11 @@ confirm_push() {
 	fi
 	# interactive prompt via /dev/tty (works when git isn't feeding stdin)
 	if [ -r /dev/tty ]; then
-		printf "You are about to push to protected branch '%s'. Are you sure you want to continue? [y/N]: " "$branch" > /dev/tty
+		# default YES when user just presses Enter
+		printf "You are about to push to protected branch '%s'. Are you sure you want to continue? [Y/n]: " "$branch" > /dev/tty
 		read -r answer < /dev/tty || answer=""
 		case "$answer" in
-			y|Y|yes|YES|Yes) 
+			""|y|Y|yes|YES|Yes)
 				log_info "User confirmed push to '$branch'."
 				return 0
 				;;
@@ -85,12 +89,45 @@ confirm_push() {
 	fi
 }
 
+# New helper: interactive ask to continue when bad commit messages exist
+ask_continue_on_bad_commits() {
+	local branch="$1"
+	# non-interactive auto-allow via env
+	if [ "${GIT_ALLOW_BAD_COMMIT_MSG:-}" = "yes" ] || [ "${GIT_ALLOW_BAD_COMMIT_MSG:-}" = "1" ]; then
+		log_warn "GIT_ALLOW_BAD_COMMIT_MSG=yes detected; allowing push despite commit message issues."
+		return 0
+	fi
+	# prompt via /dev/tty (default YES on empty input)
+	if [ -r /dev/tty ]; then
+		printf "\nThere are commit message issues on branch '%s'. Continue push anyway? [Y/n]: " "$branch" > /dev/tty
+		read -r answer < /dev/tty || answer=""
+		case "$answer" in
+			""|y|Y|yes|YES|Yes)
+				log_info "User confirmed push despite commit message issues."
+				return 0
+				;;
+			*)
+				log_warn "Push cancelled by user due to commit message issues."
+				return 1
+				;;
+		esac
+	else
+		log_warn "Non-interactive environment and GIT_ALLOW_BAD_COMMIT_MSG not set; rejecting push due to commit message issues."
+		return 1
+	fi
+}
+
+# iterate incoming refs and validate commits; collect failures instead of immediate exit
 while read local_ref local_oid remote_ref remote_oid; do
 	branch="${local_ref##refs/heads/}"
 
 	for pb in "${PROTECTED_BRANCHES[@]}"; do
 		if [[ "$branch" == "$pb" ]]; then
 			# ask user for confirmation instead of outright blocking
+			if check_override; then
+				log_info "Override used: allowing push to protected branch '$branch'."
+				continue 2
+			fi
 			if confirm_push "$branch"; then
 				log_info "Proceeding with push to protected branch '$branch' after confirmation."
 				continue 2
@@ -113,37 +150,72 @@ while read local_ref local_oid remote_ref remote_oid; do
 		commits=$(git rev-list "$remote_oid..$local_oid")
 	fi
 
+	# Collect failures for this ref
+	failures=0
+	fail_list_file="$(mktemp)"
+	trap 'rm -f "$fail_list_file"' RETURN
+
 	for commit in $commits; do
+		# skip validation for commits not authored by the local user (avoid blocking on old/merged commits)
+		if [ -n "$LOCAL_AUTHOR_EMAIL" ]; then
+			author_email="$(git show -s --format='%ae' "$commit" 2>/dev/null || true)"
+			if [ -n "$author_email" ] && [ "$author_email" != "$LOCAL_AUTHOR_EMAIL" ]; then
+				# optional debug log (comment out if noisy)
+				# log_debug "Skipping commit $commit authored by $author_email (not local $LOCAL_AUTHOR_EMAIL)"
+				continue
+			fi
+		fi
+
 		msg=$(git log -n1 --pretty=format:%B "$commit")
 		header=$(printf "%s\n" "$msg" | awk '!/^[[:space:]]*($|#)/{print;exit}')
 
+		# Check header format
 		if ! printf "%s" "$header" | grep -Eiq "$TYPES_REGEX"; then
-			log_error "Commit ${commit} on branch '${branch}' has an invalid header format."
-			log_info "Expected format: type(scope): <description>"
-			log_info "Allowed types: ${ALLOWED_TYPES}"
-			log_example "Example: feat(core): Add support for colored logging in all git hooks"
-			exit 1
+			printf "%s\t%s\tINVALID_HEADER\n" "$commit" "$(echo "$header" | tr '\n' ' ')" >> "$fail_list_file"
+			failures=1
+			continue
 		fi
 
+		# Check description length
 		description=$(printf "%s" "$header" | sed -E 's/^(feat|fix|docs|refactor|test)\([^)]+\):[[:space:]]*(.*)$/\2/I')
 		len=$(printf '%s' "$description" | wc -c | tr -d '[:space:]')
 		if [ "$len" -lt 25 ] || [ "$len" -gt 170 ]; then
-			log_error "Commit ${commit} on branch '${branch}' has a description length of $len (must be 25-170)."
-			log_info "Your description: \"$description\""
-			log_warn "Please provide a more detailed and concise description."
-			exit 1
+			printf "%s\t%s\tBAD_LENGTH(%s)\n" "$commit" "$(echo "$description" | tr '\n' ' ')" "$len" >> "$fail_list_file"
+			failures=1
+			continue
 		fi
 
+		# Forbidden patterns
 		for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
 			if printf "%s" "$msg" | grep -iqF "$pattern"; then
-				log_error "Commit ${commit} on branch '${branch}' contains forbidden pattern: '$pattern'."
-				log_warn "Forbidden words: ${FORBIDDEN_WORDS}"
-				log_info "Please revise your commit message to remove forbidden words."
-				exit 1
+				printf "%s\t%s\tFORBIDDEN(%s)\n" "$commit" "$(echo "$header" | tr '\n' ' ')" "$pattern" >> "$fail_list_file"
+				failures=1
+				break
 			fi
 		done
 	done
+
+	# If we collected failures, print a summary and ask the user
+	if [ "$failures" -ne 0 ]; then
+		log_error "Found commit message issues in the commits to be pushed on branch '$branch':"
+		# print the failures in readable form
+		while IFS=$'\t' read -r sha info reason; do
+			log_info "Commit: $sha"
+			log_warn "  Reason: $reason"
+			log_example "  Header/Excerpt: $info"
+		done < "$fail_list_file"
+		# ask whether to continue
+		if ask_continue_on_bad_commits "$branch"; then
+			log_warn "User allowed push despite commit message issues on branch '$branch'."
+			# continue to next ref (do not block)
+			continue
+		else
+			log_error "Push aborted due to commit message issues."
+			exit 1
+		fi
+	fi
+
 done
 
-log_success "All commits passed validation. Push allowed."
+log_success "All commits passed validation or user allowed them. Push allowed."
 exit 0
