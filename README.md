@@ -87,6 +87,19 @@ Each hooks from the hidden files [git](./.git/hooks), are component that is conf
 - sendemail-validate
 - update
 
+# Features Stack
+- Basic
+## 2.level : command execution
+
+## 3.level : Built-in commands
+
+## 4.level : pipes & redirection
+
+## 5.level : Cotntrol flow
+
+## 6.level : script execution
+
+
 # RESSOURCES
 
 **about workflow:**
