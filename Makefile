@@ -16,8 +16,8 @@
 SUBMODULE_DIR := lib/libft
 SUBMODULE_REPO := git@github.com:Univers42/libft.git
 SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
-REMOTE_HOME		:= git remote -v | awk 'NR==1 {print $1}'
-CURRENT_BRANCH	:= git branch --show-current
+REMOTE_HOME := $(shell git remote -v | awk 'NR==1 {print $$1}')
+CURRENT_BRANCH := $(shell git branch --show-current)
 REMOTE_SCHOOL	?=
 MSG				:= 
 include	variables.mk
