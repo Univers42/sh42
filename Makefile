@@ -6,7 +6,7 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/26 19:01:16 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/26 23:25:01 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,9 +18,9 @@ SUBMODULE_REPO := git@github.com:Univers42/libft.git
 SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
 
 include	variables.mk
--include libft/build/colors.mk
--include libft/build/common.mk
--include libft/build/debug.mk
+-include lib/libft/build/colors.mk
+-include lib/libft/build/common.mk
+-include lib/libft/build/debug.mk
 
 SRCDIR := srcs
 OBJDIR := .objs

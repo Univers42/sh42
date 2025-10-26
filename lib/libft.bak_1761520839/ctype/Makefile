@@ -27,7 +27,10 @@ SRCS = \
 	ft_tolower.c \
 	ft_toupper.c	\
 	is_at_end.c		\
-	assert_char.c
+	assert_char.c	\
+	is_word_char.c	\
+	is_meta_char.c	\
+	is_name_char.c
 
 OBJ_DIR := obj
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))

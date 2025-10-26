@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 13:37:45 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/10/23 00:16:09 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/26 23:10:40 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,19 @@ typedef enum e_state
 	ST_OK = 0,
 	ST_DONE = 0,
 	ST_INIT = 0,
+	ST_NORMAL = 0,			// Default state
 	ST_FOUND_NL,
 	ST_INFO_BASE = SEV_INFO,
-	ST_WHITESPACE,
+	ST_IN_SQUOTE,			// Inside single quotes
+	ST_IN_DQUOTE,			// Inside double quotes
+	ST_IN_BQUOTE,			// Inside backticks
+	ST_IN_SUBSHELL,			// Inside $()
+	ST_IN_ARITH,			// Inside $(())
+	ST_IN_PARAM,			// Inside ${}
+	ST_HEREDOC,				// Reading heredoc content
+	ST_IN_COMMENT,			// Reading comment
+	ST_ESCAPE_NEXT,			// next char is escaped
+	ST_WHITESPACE,			// Reading whitespace
 	ST_SIGN,
 	ST_BASE_PREFIX,
 	ST_DIGITS,

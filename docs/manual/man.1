@@ -1,0 +1,226 @@
+.TH SH42 1 "October 2025" "sh42 1.0" "User Commands"
+.SH NAME
+sh42 \- minimal educational POSIX-like shell
+.SH SYNOPSIS
+.B sh42
+.RB [ \-hv ]
+.RB [ \-c
+.IR command ]
+.RI [ script
+.RI [ arguments... ]]
+.SH DESCRIPTION
+.B sh42
+is a lightweight, educational shell implementation designed for learning Unix shell internals and command-line programming. It provides a subset of standard shell features including command execution, pipeline processing, I/O redirection, variable expansion, and basic built-in commands.
+.PP
+When invoked without arguments,
+.B sh42
+runs in interactive mode, displaying a prompt and reading commands from standard input. When given a script file, it executes commands from that file. The
+.B \-c
+option allows execution of a single command string.
+.SH OPTIONS
+.TP
+.BR \-c " " \fIcommand\fR
+Execute the specified command string and exit immediately. The command is parsed and executed as if it were entered at the interactive prompt.
+.TP
+.BR \-v , " \-\-verbose"
+Enable verbose mode. Prints detailed lexer and parser debug information to standard error, useful for debugging scripts or understanding how commands are parsed.
+.TP
+.BR \-h , " \-\-help"
+Display a brief help message summarizing command-line options and exit.
+.SH FEATURES
+.SS Command Execution
+Commands are executed by forking a child process and using
+.BR execve (2)
+to replace it with the requested program. The shell searches for executables in directories listed in the
+.B PATH
+environment variable.
+.SS Pipelines
+Multiple commands can be connected using the pipe operator
+.RB ( | ),
+which redirects the standard output of one command to the standard input of the next. Pipelines are evaluated left-to-right.
+.PP
+Example:
+.RS
+.B ls \-l | grep .txt | wc \-l
+.RE
+.SS Redirections
+.B sh42
+supports the following I/O redirection operators:
+.TP
+.B >
+Redirect standard output to a file, truncating it if it exists.
+.TP
+.B >>
+Redirect standard output to a file, appending if it exists.
+.TP
+.B <
+Redirect standard input from a file.
+.TP
+.B 2>
+Redirect standard error to a file (if supported).
+.SS Quoting and Variables
+.TP
+.B Single quotes (' ')
+Preserve the literal value of all characters within the quotes.
+.TP
+.B Double quotes (" ")
+Preserve literal value of characters except for
+.BR $ ,
+which triggers variable expansion.
+.TP
+.B Variable expansion ($VAR)
+Variables are expanded using the
+.B $
+prefix. Environment variables and shell variables are supported.
+.SS Built-in Commands
+.TP
+.B cd
+.RI [ directory ]
+Change the current working directory. With no arguments, changes to the home directory.
+.TP
+.B echo
+.RI [ arguments... ]
+Display a line of text. Supports basic argument expansion.
+.TP
+.B exit
+.RI [ n ]
+Exit the shell with status
+.IR n .
+If
+.I n
+is omitted, the exit status is that of the last command executed.
+.TP
+.B export
+.IR variable = value
+Set an environment variable (if supported).
+.TP
+.B unset
+.I variable
+Remove a variable from the environment (if supported).
+.SH USAGE EXAMPLES
+.SS Interactive Mode
+Start an interactive shell session:
+.PP
+.RS
+.B $ sh42
+.br
+sh42> echo "Hello, world!"
+.br
+Hello, world!
+.br
+sh42> exit
+.RE
+.SS Command String Execution
+Execute a command directly from the command line:
+.PP
+.RS
+.B $ sh42 \-c "ls \-la | grep '^d'"
+.RE
+.SS Script Execution
+Create a script file
+.I hello.sh42
+with the following content:
+.PP
+.RS
+.nf
+#!/usr/bin/sh42
+echo "Starting script..."
+NAME="Dylan"
+echo "Hello, $NAME"
+ls | grep .c
+.fi
+.RE
+.PP
+Make it executable and run it:
+.PP
+.RS
+.B $ chmod +x hello.sh42
+.br
+.B $ sh42 hello.sh42
+.RE
+.SS Verbose Parsing
+Debug command parsing with verbose mode:
+.PP
+.RS
+.B $ sh42 \-v \-c "cat file.txt | grep pattern > output.txt"
+.RE
+.SS Complex Pipeline
+Chain multiple commands with pipes and redirections:
+.PP
+.RS
+.B $ sh42 \-c "find . \-name '*.c' | xargs wc \-l | sort \-n > line_counts.txt"
+.RE
+.SH ENVIRONMENT
+.TP
+.B PATH
+Colon-separated list of directories searched for executable commands.
+.TP
+.B HOME
+User's home directory, used by
+.B cd
+when invoked without arguments.
+.TP
+.B PWD
+Current working directory.
+.SH FILES
+.TP
+.I ~/.sh42rc
+Optional initialization file read at startup in interactive mode. Can contain variable assignments and command aliases.
+.TP
+.I /usr/local/bin/sh42
+Default installation path for the shell binary.
+.TP
+.I /usr/local/share/man/man1/sh42.1
+This manual page.
+.SH EXIT STATUS
+.B sh42
+returns the exit status of the last command executed. If no commands were executed successfully, it returns 0. In case of syntax errors or internal failures, it may return a non-zero status.
+.SH DIAGNOSTICS
+Error messages are written to standard error and typically include:
+.TP
+.B "command not found"
+The specified command could not be located in
+.BR PATH .
+.TP
+.B "permission denied"
+Insufficient permissions to execute the command or access a file.
+.TP
+.B "syntax error"
+Invalid shell syntax detected during parsing.
+.SH LIMITATIONS
+.B sh42
+is an educational shell and lacks many features found in production shells:
+.IP \[bu] 2
+No job control (background jobs, job suspension)
+.IP \[bu]
+Limited signal handling
+.IP \[bu]
+No command history or line editing
+.IP \[bu]
+No command substitution or process substitution
+.IP \[bu]
+No advanced pattern matching or globbing
+.IP \[bu]
+No functions or control structures (if, while, for)
+.SH BUGS
+Please report bugs to the author or via the project repository.
+.SH SEE ALSO
+.BR bash (1),
+.BR sh (1),
+.BR zsh (1),
+.BR execve (2),
+.BR fork (2),
+.BR pipe (2),
+.BR dup2 (2)
+.SH STANDARDS
+.B sh42
+implements a minimal subset of POSIX shell features but does not claim full POSIX compliance.
+.SH HISTORY
+.B sh42
+was created as an educational project at 42 School to teach shell implementation fundamentals, process management, and Unix system programming.
+.SH AUTHOR
+Dylan Lesieur
+.br
+42 School educational project
+.PP
+For more information, visit the project repository or documentation.

@@ -15,6 +15,18 @@ to install the dependencies:
 ```bash
 $ make install
 ```
+# how to use
+
+```bash
+$ ./shell --lex "echo hello world"
+```
+
+to read the man
+
+```
+groff -Tutf8 -man docs/manual/man.1 | less -R
+```
+
 # RESSOURCES
 
 **about workflow:**

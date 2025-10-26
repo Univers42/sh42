@@ -41,7 +41,7 @@ t_token scan_token(t_scanner *scan)
 		return make_token(scan, TOKEN_STAR);
 	case '!':
 		if (match(scan, '='))
-			return make_token(scan, TOKEN_BANG_EQUAL);
+			return make_token(scan, TOKEN_LESS_EQUAL);
 		else
 			return make_token(scan, TOKEN_BANG);
 	case '=':
@@ -65,9 +65,9 @@ t_token scan_token(t_scanner *scan)
 	return error_token(scan, "error lexer");
 }
 
-void	scan_all_tokens(t_scanner *scan, int debug)
+void scan_all_tokens(t_scanner *scan, int debug)
 {
-	t_token	token;
+	t_token token;
 
 	token = (t_token){0};
 	while (token.type != TOKEN_EOF && token.type != TOKEN_ERR)
@@ -78,20 +78,30 @@ void	scan_all_tokens(t_scanner *scan, int debug)
 	}
 }
 
-void	print_token(const t_token *token)
+void print_token(const t_token *token)
 {
 	static const char *token_names[] = {
-		"LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE", "COMMA", "DOT",
-		"MINUS", "PLUS", "SEMICOLON", "SLASH", "STAR", "PIPE", "AMPERSAND",
-		"BANG", "BANG_EQUAL", "EQUAL", "EQUAL_EQUAL", "GREATER", "GREATER_EQUAL",
-		"LESS", "LESS_EQUAL", "IDENTIFIER", "STRING", "NUMBER", "AND", "CLASS",
-		"ELSE", "FALSE", "FOR", "FUN", "IF", "NIL", "OR", "PRINT", "RETURN",
-		"SUPER", "THIS", "TRUE", "VAR", "WHILE", "ERR", "EOF"};
-	int					type;
-
-	type = token->type;
-	if (type < 0 || type >= TOKEN_COUNT)
-		type = TOKEN_ERR;
+		"PIPE", "PIPE_PIPE", "AMPERSAND", "AMP_AMP", "SEMICOLON", "NEWLINE",
+		"REDIR_IN", "REDIR_OUT", "REDIR_APPEND", "REDIR_HEREDOC", "REDIR_HEREDOC_STRIP",
+		"REDIR_FD_IN", "REDIR_FD_OUT", "REDIR_INOUT", "REDIR_CLOBBER",
+		"LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE", "GREATER",
+		"IF", "THEN", "ELIF", "FI", "ELSE", "CASE", "ESAC", "FOR", "WHILE",
+		"UNTIL", "CLASS", "DO", "DONE", "IN", "FUNCTION", "SELECT",
+		"SQUOTE_START", "SQUOTE", "SQUOTE_END", "DQUOTE_START", "DQUOTE", "DQUOTE_END",
+		"BQUOTE_START", "BQUOTE", "BQUOTE_END", "DOLLAR", "DOLLAR_LPAREN", "DOLLAR_LBRACE",
+		"DOLLAR_DPAREN", "_TILDE", "GLOB_STAR", "GLOB_QUESTION", "GLOB_BRACKET_OPEN",
+		"GLOB_BRACKET_COSE", "BACKSLASH", "HASH", "BANG", "AT", "QUESTION", "DASH",
+		"DOLLAR_HASH", "DOLLAR_STAR", "DOLLAR_AT", "DOLLAR_QUESTION", "DOLLAR_DOLLAR",
+		"DOLLAR_BANG", "DOLLAR_DASH", "DOLLAR_ZERO", "GREATER_GREATER", "COMMA", "DOT",
+		"MINUS", "PLUS", "SLASH", "STAR", "BANG_EQUAL", "EQUAL", "EQUAL_EQUAL",
+		"GREATER_AMPERSAND", "GREATER_EQUAL", "LESS", "LESS_LESS", "LESS_AMPERSAND",
+		"LESS_EQUAL", "IDENTIFIER", "STRING", "AND", "WORD", "NUMBER", "FALSE",
+		"FUN", "NIL", "OR", "PRINT", "RETURN", "SUPER", "THIS", "TRUE", "VAR",
+		"WHITESPACE", "EOF", "ERR"};
+	int type = token->type;
+	const char *name = "UNKNOWN";
+	if (type >= 0 && type < (int)(sizeof(token_names) / sizeof(token_names[0])))
+		name = token_names[type];
 	printf("[token] %-16s | line %d | '%.*s'\n",
-			token_names[type], token->line, token->length, token->start);
+		   name, token->line, token->length, token->start);
 }
