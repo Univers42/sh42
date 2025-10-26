@@ -104,7 +104,22 @@ static inline const t_keyword_entry *map_keywords(void)
 	return keywords;
 }
 
-t_token scan_token(t_scanner *scan);
-void print_token(const t_token *token);
-void scan_all_tokens(t_scanner *scan, int debug);
+char			advance(t_scanner *scan);
+char			peek(t_scanner *scan);
+bool			scan_is_at_end(t_scanner *scan);
+char			peek_next(t_scanner *scan);
+bool			match(t_scanner *scan, char expected);
+t_token			make_token(t_scanner *scan, t_token_type type);
+t_token			error_token(t_scanner *scan, const char *mesg);
+void			skip_unused_data(t_scanner *scan);
+t_token_type	check_key_word(int start, int length,
+					const char *rest, t_token_type type, t_scanner *scan);
+t_token_type	identifier_type(t_scanner *scan);
+t_token			identifier(t_scanner *scan);
+t_token			number(t_scanner *scan);
+t_token			string(t_scanner *scan);
+t_token			scan_token(t_scanner *scan);
+void			print_token(const t_token *token);
+void			scan_all_tokens(t_scanner *scan, int debug);
+
 #endif

@@ -1,0 +1,14 @@
+.o
+*/*.o
+*/*/*.o
+*.ds_store
+*.swp
+*.swo
+*.swm
+*.a
+**/.d
+*/*.d
+*/*/*.d
+.vscode/*
+.vscode/
+minishell

@@ -6,14 +6,14 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/26 15:21:34 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/26 19:01:16 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # Generic project Makefile — discovers sources in srcs, builds objects in .objs/, and includes dependency files
 
 # Submodule / dependency management
-SUBMODULE_DIR := libft
+SUBMODULE_DIR := lib/libft
 SUBMODULE_REPO := git@github.com:Univers42/libft.git
 SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
 
@@ -97,7 +97,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 # Include dependency files if present
 -include $(DEPS)
 
-set-hooks:
+configure:
 	@chmod +x scripts/* scripts/*/* 2>/dev/null || true
 	@bash -c 'if [ -x "scripts/install-hooks.sh" ]; then \
 		./scripts/install-hooks.sh >/dev/null 2>&1 && printf "%s\n" "$(BRIGHT_CYAN)$(BOLD)$(LOG_PREFIX)$(RESET) [$(STATE_COLOR_OK)$(BOLD)OK$(RESET)] : Project hooks configured successfully!"; \
