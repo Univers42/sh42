@@ -6,7 +6,7 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/26 23:25:01 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/27 00:46:26 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,10 @@
 SUBMODULE_DIR := lib/libft
 SUBMODULE_REPO := git@github.com:Univers42/libft.git
 SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
-
+REMOTE_HOME		:= git remote -v | awk 'NR==1 {print $1}'
+CURRENT_BRANCH	:= git branch --show-current
+REMOTE_SCHOOL	?=
+MSG				:= 
 include	variables.mk
 -include lib/libft/build/colors.mk
 -include lib/libft/build/common.mk
@@ -109,6 +112,17 @@ update:
 	$(call log_info, updating submodule to latest remote version...)
 	git submodule update --remote --merge $(SUBMODULE_DIR) || exit 1
 
+push_home:
+	@# require MSG to be provided to avoid accidental empty commits
+	@if [ -z "$(MSG)" ]; then \
+		printf "ERROR: pass a commit message with MSG=\"your message\"\n"; \
+		exit 1; \
+	fi
+	@git add .
+	@git commit -m "$(MSG)"
+	@git push $(REMOTE_HOME) $(CURRENT_BRANCH)
+
+push_campus:
 clean:
 	$(call print_status,$(RED),CLEAN,Removing objects and archives)
 	@rm -rf $(OBJDIR) $(DEPDIR) $(MINISHELL_A)
