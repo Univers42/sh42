@@ -6,20 +6,21 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/27 00:46:26 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/27 00:47:46 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # Generic project Makefile — discovers sources in srcs, builds objects in .objs/, and includes dependency files
 
 # Submodule / dependency management
-SUBMODULE_DIR := lib/libft
-SUBMODULE_REPO := git@github.com:Univers42/libft.git
-SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
-REMOTE_HOME := $(shell git remote -v | awk 'NR==1 {print $$1}')
-CURRENT_BRANCH := $(shell git branch --show-current)
+SUBMODULE_DIR	:= lib/libft
+SUBMODULE_REPO	:= git@github.com:Univers42/libft.git
+SUBMODULE_LIB	:= $(SUBMODULE_DIR)/libft.a
+REMOTE_HOME		:= $(shell git remote -v | awk 'NR==1 {print $$1}')
+CURRENT_BRANCH	:= $(shell git branch --show-current)
 REMOTE_SCHOOL	?=
-MSG				:= 
+MSG				:=
+
 include	variables.mk
 -include lib/libft/build/colors.mk
 -include lib/libft/build/common.mk
@@ -160,4 +161,5 @@ fclean: _auto_init
 ffclean: _auto_init
 re: _auto_init
 fre: _auto_init
+
 endif
