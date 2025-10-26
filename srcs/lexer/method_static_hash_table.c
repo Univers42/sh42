@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   method_static_hash_table.c                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+        */
+/*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/26 13:10:11 by syzygy            #+#    #+#             */
-/*   Updated: 2025/10/26 13:17:25 by syzygy           ###   ########.fr       */
+/*   Updated: 2025/10/26 15:38:15 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,4 +26,5 @@ t_token_type	identifier_type(t_scanner *scan)
 				return (kw->type);
 		kw++;
 	}
+	return (TOKEN_IDENTIFIER);
 }

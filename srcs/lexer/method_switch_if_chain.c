@@ -3,16 +3,12 @@
 /*                                                        :::      ::::::::   */
 /*   method_switch_if_chain.c                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+        */
+/*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/26 13:31:06 by syzygy            #+#    #+#             */
-/*   Updated: 2025/10/26 13:32:00 by syzygy           ###   ########.fr       */
+/*   Updated: 2025/10/26 14:58:58 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "lexer.h"
 
-t_token_type	*identifier_type(t_scanner *scan)
-{
-	
-}

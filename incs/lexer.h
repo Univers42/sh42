@@ -1,5 +1,5 @@
 #ifndef LEXER_H
-# define LEXER_H
+#define LEXER_H
 
 #include "libft.h"
 
@@ -48,61 +48,63 @@ typedef enum s_token_type
 	TOKEN_ERR,
 	TOKEN_EOF,
 	TOKEN_COUNT
-}   t_token_type;
+} t_token_type;
 
 typedef struct s_token
 {
-	t_token_type	type;
-	const char 		*start;
-	int				length;
-	int				line;
-}	t_token;
+	t_token_type type;
+	const char *start;
+	int length;
+	int line;
+} t_token;
 
 typedef struct s_scanner
 {
 	const char *start;
 	const char *current;
-	int			line;
-}	t_scanner;
+	int line;
+} t_scanner;
 
 typedef struct s_keyword_entry
 {
-	const char		*keyword;
-	int				length;
-	t_token_type	type;
-}	t_keyword_entry;
+	const char *keyword;
+	int length;
+	t_token_type type;
+} t_keyword_entry;
 
-void	init_scanner(const char *source);
-t_token	scan_token();
+t_scanner *init_scanner(const char *source);
+t_token scan_token(t_scanner *scan);
 
-static inline int	keyword_hash(const char *str, int length)
+static inline int keyword_hash(const char *str, int length)
 {
 	return (str[0] + str[length - 1 + length] % 32);
 }
 
-static	inline const t_keyword_entry *map_keywords(void)
+static inline const t_keyword_entry *map_keywords(void)
 {
 	static const t_keyword_entry keywords[TOKEN_COUNT] = {
-    {"and", 3, TOKEN_AND},
-    {"class", 5, TOKEN_CLASS},
-    {"else", 4, TOKEN_ELSE},
-    {"false", 5, TOKEN_FALSE},
-    {"for", 3, TOKEN_FOR},
-    {"fun", 3, TOKEN_FUN},
-    {"if", 2, TOKEN_IF},
-    {"nil", 3, TOKEN_NIL},
-    {"or", 2, TOKEN_OR},
-    {"print", 5, TOKEN_PRINT},
-    {"return", 6, TOKEN_RETURN},
-    {"super", 5, TOKEN_SUPER},
-    {"this", 4, TOKEN_THIS},
-    {"true", 4, TOKEN_TRUE},
-    {"var", 3, TOKEN_VAR},
-    {"while", 5, TOKEN_WHILE},
-    {NULL, 0, TOKEN_IDENTIFIER}
-	};
+		{"and", 3, TOKEN_AND},
+		{"class", 5, TOKEN_CLASS},
+		{"else", 4, TOKEN_ELSE},
+		{"false", 5, TOKEN_FALSE},
+		{"for", 3, TOKEN_FOR},
+		{"fun", 3, TOKEN_FUN},
+		{"if", 2, TOKEN_IF},
+		{"nil", 3, TOKEN_NIL},
+		{"or", 2, TOKEN_OR},
+		{"print", 5, TOKEN_PRINT},
+		{"return", 6, TOKEN_RETURN},
+		{"super", 5, TOKEN_SUPER},
+		{"this", 4, TOKEN_THIS},
+		{"true", 4, TOKEN_TRUE},
+		{"var", 3, TOKEN_VAR},
+		{"while", 5, TOKEN_WHILE},
+		{NULL, 0, TOKEN_IDENTIFIER}};
 
-	return (&keywords);
+	return keywords;
 }
 
+t_token scan_token(t_scanner *scan);
+void print_token(const t_token *token);
+void scan_all_tokens(t_scanner *scan, int debug);
 #endif

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: syzygy <syzygy@student.42.fr>              +#+  +:+       +#+         #
+#    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/25 01:57:02 by syzygy           ###   ########.fr        #
+#    Updated: 2025/10/26 15:21:34 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,9 +17,7 @@ SUBMODULE_DIR := libft
 SUBMODULE_REPO := git@github.com:Univers42/libft.git
 SUBMODULE_LIB := $(SUBMODULE_DIR)/libft.a
 
-
-
-include variables.mk
+include	variables.mk
 -include libft/build/colors.mk
 -include libft/build/common.mk
 -include libft/build/debug.mk
@@ -106,6 +104,10 @@ set-hooks:
 	else \
 		printf "%s\n" "$(BRIGHT_CYAN)$(BOLD)$(LOG_PREFIX)$(RESET) [$(STATE_COLOR_WARN)$(BOLD)WARN$(RESET)] : scripts/install-hooks.sh not found or not executable."; \
 	fi'
+
+update:
+	$(call log_info, updating submodule to latest remote version...)
+	git submodule update --remote --merge $(SUBMODULE_DIR) || exit 1
 
 clean:
 	$(call print_status,$(RED),CLEAN,Removing objects and archives)

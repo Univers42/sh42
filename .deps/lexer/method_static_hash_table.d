@@ -1,4 +1,5 @@
-.objs/shell.o: srcs/shell.c incs/minishell.h libft/include/libft.h \
+.objs/lexer/method_static_hash_table.o: \
+ srcs/lexer/method_static_hash_table.c incs/lexer.h libft/include/libft.h \
  libft/include/ft_string.h libft/include/ft_stddef.h \
  libft/include/ft_memory.h libft/include/ft_ctype.h \
  libft/include/data_structures.h \
@@ -12,8 +13,8 @@
  libft/include/../math/geometry/./draw/pixel.h libft/include/ft_stdlib.h \
  libft/include/ft_stdio.h libft/include/ft_render.h \
  libft/include/ft_colors.h libft/include/ft_debug.h \
- libft/include/ft_sort.h incs/lexer.h
-incs/minishell.h:
+ libft/include/ft_sort.h
+incs/lexer.h:
 libft/include/libft.h:
 libft/include/ft_string.h:
 libft/include/ft_stddef.h:
@@ -35,4 +36,3 @@ libft/include/ft_render.h:
 libft/include/ft_colors.h:
 libft/include/ft_debug.h:
 libft/include/ft_sort.h:
-incs/lexer.h:
