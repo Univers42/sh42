@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 18:43:35 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/10/26 23:49:41 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/27 14:20:05 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ int main(void)
 			rl_redisplay();
 		free(line);
 	}
-	printf("clear history\n");
+	printf("clear hist\n");
 	rl_clear_history();
 	return (0);
 }
