@@ -6,7 +6,7 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/27 19:51:55 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/27 19:59:20 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -113,7 +113,7 @@ update:
 	$(call log_info, updating submodule to latest remote version...)
 	git submodule update --remote --merge $(SUBMODULE_DIR) || exit 1
 
-push_home:
+push_home: ffclean
 	@# require MSG to be provided to avoid accidental empty commits
 	@if [ -z "$(MSG)" ]; then \
 		printf "ERROR: pass a commit message with MSG=\"your message\"\n"; \
@@ -123,14 +123,14 @@ push_home:
 	@git commit -m "$(MSG)"
 	@git push $(REMOTE_HOME) $(CURRENT_BRANCH)
 
-push_campus:
+push_campus: ffclean
 	@if [ -z "$(MSG)" ]; then \
 		printf "ERROR: pass a commit message with MSG=\"your message\"\n"; \
 		exit 1; \
 	fi
-	git add .
-	git commit -m "$(MSG)"
-	git push $(REMOTE_CAMPUS) --all
+	@git add .
+	@git commit -m "$(MSG)"
+	@git push $(REMOTE_CAMPUS) --all
 
 clean:
 	$(call print_status,$(RED),CLEAN,Removing objects and archives)
@@ -153,13 +153,12 @@ ffclean: fclean
 re: fclean all
 
 fre: ffclean all
-.PHONY: all clean fclean ffclean re
 
 # Auto-run set-hooks on first use (after clone)
 ifeq ($(wildcard .init.stamp),)
 .PHONY: _auto_init
 _auto_init:
-	@$(MAKE) set-hooks
+	#$(MAKE) set-hooks
 	@touch .init.stamp
 
 # Prepend _auto_init to all main targets
@@ -170,4 +169,5 @@ ffclean: _auto_init
 re: _auto_init
 fre: _auto_init
 
+.PHONY: all clean fclean ffclean re push_campus push_home configure
 endif

@@ -1,9 +1,3 @@
-[submodule "libft"]
-	path = lib/libft
-	url = git@github.com:Univers42/libft.git
 [submodule "scripts/lib/libft"]
 	path = scripts/lib/libft
-	url = git@github.com:Univers42/libft.git
-[submodule "lib/libft"]
-	path = lib/libft
 	url = git@github.com:Univers42/libft.git
