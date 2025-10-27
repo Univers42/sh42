@@ -17,50 +17,57 @@ t_token scan_token(t_scanner *scan)
 		return number(scan);
 	switch (c)
 	{
-	case '(':
-		return make_token(scan, TOKEN_LEFT_PAREN);
-	case ')':
-		return make_token(scan, TOKEN_RIGHT_PAREN);
-	case '{':
-		return make_token(scan, TOKEN_LEFT_BRACE);
-	case '}':
-		return make_token(scan, TOKEN_RIGHT_BRACE);
-	case ';':
-		return make_token(scan, TOKEN_SEMICOLON);
-	case ',':
-		return make_token(scan, TOKEN_COMMA);
-	case '.':
-		return make_token(scan, TOKEN_DOT);
-	case '-':
-		return make_token(scan, TOKEN_MINUS);
-	case '+':
-		return make_token(scan, TOKEN_PLUS);
-	case '/':
-		return make_token(scan, TOKEN_SLASH);
-	case '*':
-		return make_token(scan, TOKEN_STAR);
-	case '!':
-		if (match(scan, '='))
-			return make_token(scan, TOKEN_LESS_EQUAL);
-		else
-			return make_token(scan, TOKEN_BANG);
-	case '=':
-		if (match(scan, '='))
-			return make_token(scan, TOKEN_EQUAL_EQUAL);
-		else
-			return make_token(scan, TOKEN_EQUAL);
-	case '<':
-		if (match(scan, '='))
-			return make_token(scan, TOKEN_LESS_EQUAL);
-		else
-			return make_token(scan, TOKEN_LESS);
-	case '>':
-		if (match(scan, '='))
-			return make_token(scan, TOKEN_GREATER_EQUAL);
-		else
-			return make_token(scan, TOKEN_GREATER);
-	case '"':
-		return string(scan);
+		case '|':
+			if (match(scan, '|'))
+				return (make_token(scan, TOKEN_PIPE_PIPE));
+			else
+				return (make_token(scan, TOKEN_PIPE));
+		case ''
+
+		case '(':
+			return make_token(scan, TOKEN_LEFT_PAREN);
+		case ')':
+			return make_token(scan, TOKEN_RIGHT_PAREN);
+		case '{':
+			return make_token(scan, TOKEN_LEFT_BRACE);
+		case '}':
+			return make_token(scan, TOKEN_RIGHT_BRACE);
+		case ';':
+			return make_token(scan, TOKEN_SEMICOLON);
+		case ',':
+			return make_token(scan, TOKEN_COMMA);
+		case '.':
+			return make_token(scan, TOKEN_DOT);
+		case '-':
+			return make_token(scan, TOKEN_MINUS);
+		case '+':
+			return make_token(scan, TOKEN_PLUS);
+		case '/':
+			return make_token(scan, TOKEN_SLASH);
+		case '*':
+			return make_token(scan, TOKEN_STAR);
+		case '!':
+			if (match(scan, '='))
+				return make_token(scan, TOKEN_LESS_EQUAL);
+			else
+				return make_token(scan, TOKEN_BANG);
+		case '=':
+			if (match(scan, '='))
+				return make_token(scan, TOKEN_EQUAL_EQUAL);
+			else
+				return make_token(scan, TOKEN_EQUAL);
+		case '<':
+			if (match(scan, '='))
+				return make_token(scan, TOKEN_LESS_EQUAL);
+			else
+				return make_token(scan, TOKEN_LESS);
+		case '>':
+			if (match(scan, '='))
+				return make_token(scan, TOKEN_GREATER_EQUAL);
+			else
+				return make_token(scan, TOKEN_GREATER);
+		case '"':
+			return string(scan);
 	}
 	return error_token(scan, "error lexer");
 }

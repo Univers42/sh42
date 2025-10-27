@@ -1,0 +1,5 @@
+# TODO
+
+Tree of combinations...
+
+- [ ] '|'
