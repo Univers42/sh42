@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/26 13:25:26 by syzygy            #+#    #+#             */
-/*   Updated: 2025/10/26 15:35:47 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/27 22:46:36 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ identifier_type(t_scanner *scan)
     {
     case 'a' * 10 + 3: // "and"
         if (ft_memcmp(scan->start, "and", 3) == 0)
-            return TOKEN_AND;
+            return TOKEN_IDENTIFIER;
         break;
     case 'c' * 10 + 5: // "class"
         if (ft_memcmp(scan->start, "class", 5) == 0)
@@ -41,7 +41,7 @@ identifier_type(t_scanner *scan)
         if (ft_memcmp(scan->start, "for", 3) == 0)
             return TOKEN_FOR;
         if (ft_memcmp(scan->start, "fun", 3) == 0)
-            return TOKEN_FUN;
+            return TOKEN_IDENTIFIER;
         break;
     case 'f' * 10 + 5: // "false"
         if (ft_memcmp(scan->start, "false", 5) == 0)
@@ -57,7 +57,7 @@ identifier_type(t_scanner *scan)
         break;
     case 'o' * 10 + 2: // "or"
         if (ft_memcmp(scan->start, "or", 2) == 0)
-            return TOKEN_OR;
+            return TOKEN_IDENTIFIER;
         break;
     case 'p' * 10 + 5: // "print"
         if (ft_memcmp(scan->start, "print", 5) == 0)

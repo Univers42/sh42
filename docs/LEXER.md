@@ -1,5 +1,6 @@
 # TODO
 
 Tree of combinations...
-
-- [ ] '|'
+- [x] trim extremity spaces...
+- [x] need to handle all spaces 
+- echo "ls" "-la"

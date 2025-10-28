@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/26 13:10:11 by syzygy            #+#    #+#             */
-/*   Updated: 2025/10/26 15:38:15 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/28 14:20:05 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,3 +28,4 @@ t_token_type	identifier_type(t_scanner *scan)
 	}
 	return (TOKEN_IDENTIFIER);
 }
+
