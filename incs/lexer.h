@@ -257,6 +257,7 @@ typedef struct s_keyword_entry
 	t_token_type	type;
 }	t_keyword_entry;
 
+
 t_token		scan_token(t_scanner *scan);
 
 static inline int	keyword_hash(const char *str, int length)
