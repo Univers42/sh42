@@ -3,7 +3,6 @@
 
 # include "libft.h"
 
-
 typedef enum e_category_token
 {
 	CAT_SYS_OP = 0,             // System Operators (|, &&, ;, etc.)
