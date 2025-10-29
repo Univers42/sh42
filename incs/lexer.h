@@ -11,6 +11,7 @@ typedef enum e_category_token
 	CAT_GROUPING = 300,         // Grouping and Sub-shells ((), {}, etc.)
 	CAT_KEYWORDS = 400,         // Shell Keywords (if, while, function, etc.)
 	CAT_LITERALS = 500,         // String/Word/Number Literals
+	CAT_WORD_LIST = 550,		//
 	CAT_INHIBITORS = 600,       // Quoting and Inhibitors (', ", \)
 	CAT_PARAM_EXP = 700,        // Parameter Expansions (${...})
 	CAT_PROCESS_SUBST = 800,    // Process Substitution (<(), >())
@@ -98,44 +99,51 @@ typedef enum e_token_type
 	TOKEN_CMD_SUBST_START,      // $(   - Control substitution (was TOKEN_DOLLAR_LPAREN)
 	TOKEN_ARITH_EXP_START,      // $((  - Arithmetic expansion (was TOKEN_DOLLAR_DPAREN)
 
-	/* === 400-499: CAT_KEYWORDS - Shell Keywords === */
+	/* === 400-499: CAT_KEYWORDS - Shell Keywords - Reserved words === */
 	TOKEN_KEYWORDS = CAT_KEYWORDS,
 	TOKEN_IF,                   // if
-	TOKEN_THIS,
 	TOKEN_THEN,                 // then
+	TOKEN_ELSE,                 // else
 	TOKEN_ELIF,                 // elif
 	TOKEN_FI,                   // fi
-	TOKEN_ELSE,                 // else
 	TOKEN_CASE,                 // case
 	TOKEN_ESAC,                 // esac
 	TOKEN_FOR,                  // for
+	TOKEN_SELECT,               // select
 	TOKEN_WHILE,                // while
 	TOKEN_UNTIL,                // until
 	TOKEN_DO,                   // do
 	TOKEN_DONE,                 // done
-	TOKEN_IN,                   // in
 	TOKEN_FUNCTION,             // function (or fun/FUN)
-	TOKEN_SELECT,               // select
+	TOKEN_COPROC,
+	TOKEN_COND_START,
+	TOKEN_COND_END,
+	TOKEN_COND_ERROR,
+	TOKEN_IN,
+	TOKEN_THIS,
+	TOKEN_BANG,
+	TOKEN_TIME,
+	TOKEN_TIMEOPT,
+	TOKEN_TIMEIGN,
 	// Retained custom keywords:
-	TOKEN_CLASS,
-	TOKEN_VAR,
-	TOKEN_RETURN,
-	TOKEN_SUPER,
-	TOKEN_PRINT,
-	TOKEN_TRUE,
-	TOKEN_FALSE,
-	TOKEN_NIL,
 
 	/* === 500-599: CAT_LITERALS - Words and Literals === */
 	TOKEN_LITERALS = CAT_LITERALS,
 	TOKEN_IDENTIFIER,           // Variable/function name identifier 
 	TOKEN_WORD,                 // General unquoted word
+	TOKEN_ASS_WORD,
+	TOKEN_REDIR_WORD,
 	TOKEN_FLAG,                 // -flag / --long-flag (command-line style)
-	TOKEN_NUMBER,               // Numeric literal
+	TOKEN_NUMBER,              // Numeric literal
 	// The following tokens should represent the *content* or *type* if the lexer fully processes them:
 	TOKEN_SINGLE_QUOTED_STRING, // '...' content
 	TOKEN_DOUBLE_QUOTED_STRING, // "..." content
 	TOKEN_BQUOTE,
+
+	TOKEN_LISTS = CAT_WORD_LIST,
+	TOKEN_ARITH_CMD,
+	TOKEN_ARITH_FOR_EXPRS,
+
 	/* === 600-699: CAT_INHIBITORS - Quoting and Inhibitors === */
 	TOKEN_INHIBITORS = CAT_INHIBITORS,
 	TOKEN_BACKSLASH,            // \    - Inhibitor (backslash)
@@ -212,6 +220,15 @@ typedef enum e_token_type
 	TOKEN_SENTINEL
 }   t_token_type;
 
+typedef enum e_stream_type
+{
+	STREAM_NONE,
+	STREAM_STRING,
+	STREAM_FILE,
+	STREAM_STDIN,
+}t_stream_type;
+
+
 typedef struct s_map_token
 {
 	t_token_type    token;
@@ -221,12 +238,7 @@ typedef struct s_map_token
 extern t_map_token tok[];
 // --- 1. Scanner Structure ---
 // No globals. This struct will be passed around.
-typedef struct s_scanner
-{
-    const char  *start;
-    const char  *current;
-    int         line;
-}   t_scanner;
+
 
 // --- 2. Token Handler Function Type ---
 
@@ -247,6 +259,34 @@ typedef struct s_token
 	int				line;
 }	t_token;
 
+typedef union u_input_source
+{
+	char *string;
+	void *file;
+}	t_input_source;
+
+typedef struct s_input_stream
+{
+	t_stream_type	type;
+	t_input_source	src;
+	size_t			idx;
+	size_t			len;
+	char			*name;
+}	t_input_stream;
+
+typedef struct s_delim_stack
+{
+	const char *delimiters;
+	int			depth;
+	int			capacity;
+}	t_delim_stack;
+
+typedef struct s_reserved_word
+{
+	const char		*word;
+	t_token_type	token;
+}	t_reserved_word;
+
 typedef t_token (*t_fmt)(t_scanner *scan);
 
 typedef struct s_dispatch_data
@@ -264,6 +304,21 @@ typedef struct s_keyword_entry
 	t_token_type	type;
 }	t_keyword_entry;
 
+typedef struct s_scanner
+{
+	t_input_stream	input;
+	t_delim_stack	dstack;
+    const char		*start;
+    const char		*current;
+	size_t			token_index;
+	size_t			token_cap;
+	int				lexer_state;
+	int				last_token;
+	int				current_char;
+	int				interactive;
+	int				expand_aliases;
+    int				line;
+}   t_scanner;
 
 t_token		scan_token(t_scanner *scan);
 
@@ -272,25 +327,6 @@ static inline int	keyword_hash(const char *str, int length)
 	return (str[0] + str[length - 1 + length] % 32);
 }
 
-static inline const t_keyword_entry	*map_keywords(void)
-{
-	static const t_keyword_entry keywords[TOKEN_COUNT] = {
-		{"class", 5, TOKEN_CLASS},
-		{"else", 4, TOKEN_ELSE},
-		{"false", 5, TOKEN_FALSE},
-		{"for", 3, TOKEN_FOR},
-		{"if", 2, TOKEN_IF},
-		{"nil", 3, TOKEN_NIL},
-		{"print", 5, TOKEN_PRINT},
-		{"return", 6, TOKEN_RETURN},
-		{"super", 5, TOKEN_SUPER},
-	
-		{"true", 4, TOKEN_TRUE},
-		{"var", 3, TOKEN_VAR},
-		{"while", 5, TOKEN_WHILE},
-		{NULL, 0, TOKEN_IDENTIFIER}};
-	return (keywords);
-}
 
 char			advance(t_scanner *scan);
 char			peek(t_scanner *scan);
