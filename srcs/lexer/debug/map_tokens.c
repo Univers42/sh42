@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 13:07:15 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/10/29 13:43:52 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/29 20:48:29 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,14 +88,6 @@ t_map_token	tok[] = {
 {TOKEN_IN, "TOKEN_IN"},
 {TOKEN_FUNCTION, "TOKEN_FUNCTION"},
 {TOKEN_SELECT, "TOKEN_SELECT"},
-{TOKEN_CLASS, "TOKEN_CLASS"},
-{TOKEN_VAR, "TOKEN_VAR"},
-{TOKEN_RETURN, "TOKEN_RETURN"},
-{TOKEN_SUPER, "TOKEN_SUPER"},
-{TOKEN_PRINT, "TOKEN_PRINT"},
-{TOKEN_TRUE, "TOKEN_TRUE"},
-{TOKEN_FALSE, "TOKEN_FALSE"},
-{TOKEN_NIL, "TOKEN_NIL"},
 {TOKEN_IDENTIFIER, "TOKEN_IDENTIFIER"},
 {TOKEN_WORD, "TOKEN_WORD"},
 {TOKEN_FLAG, "TOKEN_FLAG"},

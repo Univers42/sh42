@@ -6,10 +6,13 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 19:58:39 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/10/29 20:01:42 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/29 20:48:57 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "assoc_array.h"
 
-#include ""
+void    stub(void)
+{
+    
+}

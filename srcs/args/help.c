@@ -6,13 +6,15 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 20:13:01 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/10/29 20:35:45 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/29 20:41:09 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdio.h>
+
 void	arg_help(void)
 {
-	printf("%s\t\t%s\n%s\t\t%s\n%s\t\t%s\n", 
+	printf("%s%s%s%s%s%s%s%s%s%s", 
 	"--debug",
 	"Enables internal shell debugging features, for dev",
 	"--help",

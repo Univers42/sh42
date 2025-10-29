@@ -206,7 +206,7 @@ typedef enum e_token_type
 	TOKEN_SPECIAL_CHARS = CAT_SPECIAL_CHARS,
 	TOKEN_TILDE,                // ~    - Tilde expansion (standalone)
 	TOKEN_HASH,                 // #    - Comment start (standalone)
-	TOKEN_BANG,                 // !    - Negation/History/Globbing prefix (standalone)
+	//TOKEN_BANG,                 // !    - Negation/History/Globbing prefix (standalone)
 	TOKEN_DOLLAR,               // $    - Variable prefix (standalone, e.g., $var)
 	TOKEN_DASH,                 // -    - Previous directory / Option delimiter (standalone)
 	TOKEN_COMMA,                // ,
@@ -287,15 +287,11 @@ typedef struct s_reserved_word
 	t_token_type	token;
 }	t_reserved_word;
 
-typedef t_token (*t_fmt)(t_scanner *scan);
 
-typedef struct s_dispatch_data
-{
-    uint64_t    fast_path_map; 
-    t_fmt       dispatch_table[128];
-}   t_dispatch_data;
 
-const t_dispatch_data *get_dispatch_singleton(void);
+
+
+
 
 typedef struct s_keyword_entry
 {
@@ -321,13 +317,34 @@ typedef struct s_scanner
 }   t_scanner;
 
 t_token		scan_token(t_scanner *scan);
+typedef t_token (*t_fmt)(t_scanner *scan);
+typedef struct s_dispatch_data
+{
+    uint64_t    fast_path_map; 
+    t_fmt       dispatch_table[128];
+}   t_dispatch_data;
+
+
+static inline const t_keyword_entry *map_keywords(void)
+{
+    static const t_keyword_entry keywords[] = {
+        {"if",    2, TOKEN_IF},
+        {"else",  4, TOKEN_ELSE},
+        {"while", 5, TOKEN_WHILE},
+        {"for",   3, TOKEN_FOR},
+		{"do",    2, TOKEN_DO},
+        {"done",  4, TOKEN_DONE},
+        {NULL,    0, TOKEN_SENTINEL}
+    };
+    return keywords;
+}
 
 static inline int	keyword_hash(const char *str, int length)
 {
 	return (str[0] + str[length - 1 + length] % 32);
 }
 
-
+const t_dispatch_data *get_dispatch_singleton(void);
 char			advance(t_scanner *scan);
 char			peek(t_scanner *scan);
 bool			scan_is_at_end(t_scanner *scan);
