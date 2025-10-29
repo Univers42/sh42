@@ -210,8 +210,16 @@ typedef enum e_token_type
 	TOKEN_EOF,                  // End of file
 	TOKEN_ERR,                  // Lexer Error
 	TOKEN_COUNT,                // Total number of token types
+	TOKEN_SENTINEL
 }   t_token_type;
 
+typedef struct s_map_token
+{
+	t_token_type    token;
+	const char		*rep_name;
+}t_map_token;
+
+extern t_map_token tok[];
 // --- 1. Scanner Structure ---
 // No globals. This struct will be passed around.
 typedef struct s_scanner

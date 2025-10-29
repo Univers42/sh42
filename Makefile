@@ -6,7 +6,7 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/29 12:51:17 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/10/29 14:25:04 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -109,7 +109,7 @@ configure:
 		printf "%s\n" "$(BRIGHT_CYAN)$(BOLD)$(LOG_PREFIX)$(RESET) [$(STATE_COLOR_WARN)$(BOLD)WARN$(RESET)] : scripts/install-hooks.sh not found or not executable."; \
 	fi'
 
-update:
+update: configure
 	$(call log_info, updating submodule to latest remote version...)
 	git submodule update --init --recursive --remote --merge $(SUBMODULE_DIR) || exit 1
 	git pull
