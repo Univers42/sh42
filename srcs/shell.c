@@ -6,11 +6,11 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 18:43:35 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/10/28 14:02:27 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/10/30 18:10:16 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "shell.h"
 #include "lexer.h"
 
 int main(void)
