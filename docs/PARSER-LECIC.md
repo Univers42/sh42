@@ -1,4 +1,27 @@
 # Lexer 
+The prior logic of my lexer is to use either a 
+- Streaming scanner, which is low-memory, single-pass and has a simpler flow
+for parser that consumes tokens immediately, faster when combined with fast-path dispatch (constant time handler)
+  When needed to implement large lookahead/backtracking, we need an explicit token buffer, if parser needs to rewind or reparse.
+
+- Deque-based:
+  - easy random access, arbitrary lookahead/bactraccking, collect full token stream for debugging or multi-pass parsing, simple to implement.
+  - More memory management (reallocs) lifetime management of input buffer (tokens hold pointers), 
+  potential overhead if we always tokenize entire input.
+
+- Hybrid approach: we use a streaming scanner as the primary mechanism. and only push tokens into a small deque when the parser need lookahead or buffering (on demand buffering). This gives best trade offs.
+
+## To do the choice
+Our parser need lookahead:
+
+want to keep tokens for later stages
+- history
+- reprinting
+- multi-pass analysis
+- interactive prompts
+- heredoc handling
+
+
 
 # Debug
 
