@@ -6,7 +6,7 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/23 19:03:21 by dlesieur          #+#    #+#              #
-#    Updated: 2025/10/31 00:25:50 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/11/02 18:03:03 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -90,7 +90,7 @@ $(MINISHELL_A): $(OBJS)
 $(NAME): $(LIBFT_STAMP) $(MINISHELL_A)
 	$(call print_status,$(GREEN),LINK,$@)
 	@echo "[link] linking $(NAME)"
-	$(CC) $(CFLAGS) $(OPTFLAGS) -o $@ $(MINISHELL_A) $(LIBFT_A) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $(MINISHELL_A) $(LIBFT_A) $(LDFLAGS)
 
 # Compile C source to object files and emit dependency files
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
@@ -155,6 +155,49 @@ re: fclean all
 
 fre: ffclean all
 
+# Build configurations
+.PHONY: help-only debug-only all-features minimal test-lexer
+
+# Minimal build with only help
+help-only:
+	$(MAKE) CFLAGS="$(CFLAGS) -DFEATURE_HELP_ONLY" all
+
+# Debug-only build
+debug-only:
+	$(MAKE) CFLAGS="$(CFLAGS) -DFEATURE_DEBUG_ONLY" all
+
+# Full-featured build (default)
+all-features:
+	$(MAKE) CFLAGS="$(CFLAGS) -DFEATURE_HELP -DFEATURE_DEBUG -DFEATURE_LOGIN -DFEATURE_POSIX -DFEATURE_PRETTY_PRINT" all
+
+# Minimal core only
+minimal:
+	$(MAKE) CFLAGS="$(CFLAGS) -UFEATURE_HELP -UFEATURE_DEBUG -UFEATURE_LOGIN -UFEATURE_POSIX -UFEATURE_PRETTY_PRINT" all
+
+test-lexer: $(NAME)
+	@echo "[test] running lexer tests..."
+	@python3 srcs/test/run_lexer_tests.py
+
+# Verbose runner with optional filters:
+# make test-lexer-verbose [ID=L123] [GREP=pattern] [LOG=path]
+test-lexer-verbose: $(NAME)
+	@echo "[test] running lexer tests (verbose)..."
+	@python3 srcs/test/run_lexer_tests.py \
+		$(if $(ID),--id $(ID),) \
+		$(if $(GREP),--grep "$(GREP)",) \
+		--verbose $(if $(LOG),--log-file "$(LOG)",)
+
+# Customize this to whatever runs your tests without the tee:
+# Example: a raw test target that prints to stdout (colors or not)
+test-lexer-raw:
+	@echo "Please set test-lexer-raw to run your lexer tests"; exit 2
+	# Example:
+	# python3 srcs/test/run_lexer_tests_raw.py
+
+# Pretty console + clean log target:
+test-lexer:
+	@python3 srcs/test/run_lexer_tests.py
+
 # Auto-run set-hooks on first use (after clone)
 ifeq ($(wildcard .init.stamp),)
 .PHONY: _auto_init
@@ -169,6 +212,6 @@ fclean: _auto_init
 ffclean: _auto_init
 re: _auto_init
 fre: _auto_init
+endif
 
 .PHONY: all clean fclean ffclean re push_campus push_home configure
-endif

@@ -6,11 +6,32 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:53:15 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/10/30 18:08:56 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/11/02 16:22:41 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-void stub(void)
+#include "config.h"
+#include "shell.h"
+#include <stdio.h>
+
+#if FEATURE_POSIX
+
+int handle_posix_mode(int argc, char **argv)
 {
-    
+    (void)argc;
+    (void)argv;
+    printf("POSIX compliance mode not yet implemented\n");
+    return (1);
 }
+
+#else
+
+/* Stub for when feature is disabled */
+int handle_posix_mode(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+    return (1);
+}
+
+#endif /* FEATURE_POSIX */

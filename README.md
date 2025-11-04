@@ -40,4 +40,6 @@ groff -Tutf8 -man docs/manual/man.1 | less -R
 - [glob.h](https://docs.oracle.com/cd/E86824_01/html/E54772/glob.h-3head.html#scrolltoc)
 - [arthmetical operation](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap01.html#tag_17_01_02_01)
 - [bash GNU](https://www.gnu.org/software/bash/manual/bash.html#Reserved-Words)
+- [shlex](https://rico-schmidt.name/pymotw-3/shlex/)
+- [new version of shell definition POSIX 2024](https://pubs.opengroup.org/onlinepubs/9799919799/)
 **about something else:**
