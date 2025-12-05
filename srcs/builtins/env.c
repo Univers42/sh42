@@ -1,31 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   minishell.h                                        :+:      :+:    :+:   */
+/*   env.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/12/04 13:50:55 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/12/05 16:56:25 by dlesieur         ###   ########.fr       */
+/*   Created: 2025/12/05 15:26:44 by dlesieur          #+#    #+#             */
+/*   Updated: 2025/12/05 18:35:35 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MINISHELL_H
-# define MINISHELL_H
+#include "builtins.h"
 
-#include "libft.h"
-# include "port.h"
-
-# define PROMPT "\002> \002"
-# define HIST_FILE ".minishell_history"
-# define LEXER_SQUOTE_PROMPT "squote> "
-# define LEXER_DQUOTE_PROMPT "dquote> "
-
-uint32_t	should_unwind;
-
-typedef struct s_state
+int builtin_env(t_state *state, t_vec *argv)
 {
-	t_dyn_str	input;
-}	t_state;
+    size_t  i;
 
-#endif
+    i = 0;
+    (void)argv;
+    while (i < state->env.len)
+    {
+        if (state < state->env.len)
+        {
+            ft_printf("%s=%s\n", state->env.buff[i].key, state->env.buff[i].value);
+        }
+        i++;
+    }
+    return (0);
+}

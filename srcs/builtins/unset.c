@@ -1,31 +1,39 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   minishell.h                                        :+:      :+:    :+:   */
+/*   unset.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/12/04 13:50:55 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/12/05 16:56:25 by dlesieur         ###   ########.fr       */
+/*   Created: 2025/12/05 15:26:56 by dlesieur          #+#    #+#             */
+/*   Updated: 2025/12/05 17:18:13 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MINISHELL_H
-# define MINISHELL_H
+# include "builtins.h"
 
-#include "libft.h"
-# include "port.h"
-
-# define PROMPT "\002> \002"
-# define HIST_FILE ".minishell_history"
-# define LEXER_SQUOTE_PROMPT "squote> "
-# define LEXER_DQUOTE_PROMPT "dquote> "
-
-uint32_t	should_unwind;
-
-typedef struct s_state
+# ifndef HAS_VAR
+void    try_unset(t_state *state, char *key)
 {
-	t_dyn_str	input;
-}	t_state;
+	t_env	*e;
+
+	e = env_get(&state->env, key);
+	if (e)
+		vec_env_del(&state->env, e - state->env.buff);
+}
+
+int builtin_unset(t_hellish *state, t_vec argv)
+{
+	size_t  i;
+
+	i = 1;
+	while (i < argv.len)
+	{
+		try_unset(state, argv.buf[i]);
+		i++;
+	}
+	return (0);
+}
+#else
 
 #endif
