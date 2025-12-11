@@ -4,3 +4,6 @@
 [submodule "lib/libmalloc"]
 	path = lib/libmalloc
 	url = git@github.com:Univers42/ft_malloc.git
+[submodule "include/libft"]
+	path = include/libft
+	url = git@github.com:Univers42/libft.git

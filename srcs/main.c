@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 13:49:41 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/12/05 15:13:58 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/12/11 14:55:58 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,37 +44,3 @@
  * malloced internals that must best be free)
  * pointers kept across a pop/reset -- they become invalid
  */
-static void init()
-{
-    
-}
-
-static void xexit()
-{
-    free_env(state->env);       // future environment duplication variable possible to put it into arena
-    free_all_state(state);
-}
-
-static void   repl(t_hellish *hellish)
-{
-    t_stack_mark    mark;
-    while (!state->should_exit)
-    {
-        set_stack_mark(&mark);
-        get_g_sig().should_unwind = 0;
-        dyn_str_init(hellish->input);
-        parse_and_execute(hellish);
-        pop_stack_mark(&mark);          // free of tokens/AST/temp strings
-        state->input = (t_dyn_str){};   //reinit stack dynstr
-    }
-}
-
-int main(int argc, char **argv, char **envp)
-{
-    t_hellish   *shell;
-
-    init(&shell, argc, argv, envp);
-    repl(state);
-    xexit(EXIT_SUCCESS, shell);
-    return (EXIT_SUCCESS);
-}
