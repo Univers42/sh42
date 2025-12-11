@@ -6,47 +6,75 @@
 #    By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/11 15:02:54 by dlesieur          #+#    #+#              #
-#    Updated: 2025/12/11 17:05:49 by dlesieur         ###   ########.fr        #
+#    Updated: 2025/12/11 21:13:46 by dlesieur         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 include include/libft/mk/global_conf.mk
 include include/libft/mk/functions.mk
 
-
-# Ensure phony targets
-.PHONY: help all clean fclean re fre ffclean submodules
+.PHONY: help all clean fclean re fre ffclean submodules progress_init
 
 NAME	= hellish
 LIBDPDC := libft.a
 
-# discover sources (safe quoting)
 SOURCES := $(shell find srcs -type f -name '*.c')
-# objects next to sources
 OBJS	:= $(SOURCES:.c=.o)
+TOTAL_OBJS := $(words $(OBJS))
 
-# Ensure RM exists (global_conf.mk may already set RM)
 RM ?= rm -f
 
-# If SUBMODULE_DIRS is empty, do not force a submodule build step.
+PROGRESS_WIDTH ?= 40
+COUNTER_FILE := .build_count
+SPIN_FILE := .spin_state
+
+# Unicode spinner frames (smooth Braille animation)
+SPINNER_FRAMES := ⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏
+
+# Spinner script
+define SPINNER_SCRIPT
+	trap "exit 0" SIGTERM
+	frames="$(SPINNER_FRAMES)"
+	i=0
+	while true; do
+		frame=$$(echo "$$frames" | cut -d' ' -f$$((i % 10 + 1)))
+		printf "\r$(BRIGHT_CYAN)  %s$(RESET)  $(DIM)Compiling project...$(RESET)" "$$frame"
+		i=$$((i + 1))
+		sleep 0.1
+	done
+endef
+export SPINNER_SCRIPT
+
 ifeq ($(strip $(SUBMODULE_DIRS)),)
 SUBMODULE_TARGETS :=
 else
 SUBMODULE_TARGETS := submodules
 endif
 
-all: $(NAME)
+# Wrapper target
+all: progress_init
+	@if [ ! -f $(SPIN_FILE) ]; then \
+		bash -c "$$SPINNER_SCRIPT" & echo $$! > $(SPIN_FILE); \
+	fi
+	@$(MAKE) $(NAME) --no-print-directory
+	@if [ -f $(SPIN_FILE) ]; then \
+		kill $$(cat $(SPIN_FILE)) 2>/dev/null; \
+		rm -f $(SPIN_FILE); \
+		printf "\r$(BRIGHT_GREEN)  ✓$(RESET)  $(DIM)Project built successfully$(RESET)      \n"; \
+	fi
 
-# Link only object files; build submodules first if configured.
+progress_init:
+	@rm -f $(COUNTER_FILE) $(SPIN_FILE)
+	@$(call log_info,🚀 Starting build of $(NAME))
+
 $(NAME): $(SUBMODULE_TARGETS) $(LIBDPDC) $(OBJS)
-	@printf "Linking %s\n" "$@"
-	@$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS) include/libft/libft.a
-	$(call log_ok, the program is ready)
+	@printf "\r$(BRIGHT_CYAN)  🔗 Linking$(RESET) $(BRIGHT_CYAN)%s$(RESET)            \n" "$(NAME)"
+	@$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS) include/libft/libft.a 2>/dev/null
+	@printf "$(BRIGHT_GREEN)  ✓ %s$(RESET) $(BRIGHT_GREEN)ready$(RESET)\n" "$(NAME)"
 
 $(LIBDPDC): 
-	@$(MAKE) -C include/libft all -j$(nproc) > /dev/null
+	@$(MAKE) -C include/libft all -j$$(nproc) > /dev/null
 	
-# build submodules only when SUBMODULE_DIRS is set
 submodules:
 	@echo "Building submodules..."
 	@for d in $(SUBMODULE_DIRS); do \
@@ -54,19 +82,17 @@ submodules:
 		$(MAKE) -C $$d || exit 1; \
 	done
 
-# compile rule: .c -> .o
+# Silent compilation
 %.o: %.c
-	@printf "Compiling %s\n" "$<"
-	$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) $(OBJS) $(COUNTER_FILE) $(SPIN_FILE)
 
 fclean: clean
 	$(RM) $(NAME)
 	$(MAKE) -C include/libft fclean
 
-# full clean including submodules (if any)
 ffclean: fclean
 ifneq ($(strip $(SUBMODULE_DIRS)),)
 	@for d in $(SUBMODULE_DIRS); do \
