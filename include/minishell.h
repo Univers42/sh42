@@ -5,27 +5,13 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/12/04 13:50:55 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/12/05 16:56:25 by dlesieur         ###   ########.fr       */
+/*   Created: 2025/12/11 17:02:45 by dlesieur          #+#    #+#             */
+/*   Updated: 2025/12/11 17:03:08 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MINISHELL_H
-# define MINISHELL_H
+#ifndef MINISHELL_A
+# define MINISHELL_A
 
-#include "libft.h"
-# include "port.h"
-
-# define PROMPT "\002> \002"
-# define HIST_FILE ".minishell_history"
-# define LEXER_SQUOTE_PROMPT "squote> "
-# define LEXER_DQUOTE_PROMPT "dquote> "
-
-uint32_t	should_unwind;
-
-typedef struct s_state
-{
-	t_dyn_str	input;
-}	t_state;
 
 #endif
