@@ -12,14 +12,10 @@ LIBFT = $(LIBFT_DIR)/libft.a
 BIN_DIR = ./bin
 
 # lexer sources
-LEXER_SRCS = $(LEXER_DIR)/dyn_str.c \
-		$(LEXER_DIR)/dyn_str_utils.c \
-       $(LEXER_DIR)/vector.c \
-       $(LEXER_DIR)/lexer.c \
-	   $(LEXER_DIR)/lexer_handlers.c \
-	   $(LEXER_DIR)/lexer_classifiers.c \
-	   $(LEXER_DIR)/lexer_redirect_handler.c \
-	   $(LEXER_DIR)/lexer_quote_handlers.c
+LEXER_SRCS = $(LEXER_DIR)/scanner.c \
+			$(LEXER_DIR)/scanner_handlers.c \
+			$(LEXER_DIR)/init_scanner.c \
+			$(LEXER_DIR)/handle_quotes.c
 
 LEXER_OBJS = $(LEXER_SRCS:.c=.o)
 
@@ -40,7 +36,7 @@ $(LIBFT):
 	$(MAKE) -C $(LIBFT_DIR) -j20
 
 # Compile rules
-$(LEXER_DIR)/%.o: $(LEXER_DIR)/%.c ./incs/lexer.h
+$(LEXER_DIR)/%.o: $(LEXER_DIR)/%.c ./incs/inlexer.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 srcs/%.o: srcs/%.c
