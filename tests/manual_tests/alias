@@ -1,0 +1,73 @@
+# ============================================================================
+# ALIAS BUILTIN MANUAL TESTS
+# ============================================================================
+# Test the alias and unalias builtins to ensure they work correctly
+# Run these commands interactively in the shell or pipe to minishell -c
+
+# Basic alias creation and listing
+alias
+alias ll='ls -la'
+alias
+alias ll
+
+# Create multiple aliases
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias
+
+# Test alias with spaces in command
+alias myecho='echo hello world'
+myecho
+
+# Test alias expansion in commands
+alias greet='echo Welcome to'
+greet minishell
+
+# Test unalias on single alias
+unalias ll
+alias
+
+# Test unalias on multiple aliases
+unalias gs ga gc
+alias
+
+# Test unalias -a (remove all)
+alias a1='echo a1'
+alias a2='echo a2'
+alias a3='echo a3'
+alias
+unalias -a
+alias
+
+# Test invalid alias name (should fail)
+alias '123invalid=echo fail'
+alias 'bad-name=echo fail'
+
+# Test alias overwriting
+alias test='echo old'
+alias test='echo new'
+test
+
+# Test alias with special characters in replacement
+alias paths='echo $PATH'
+paths
+
+# Test nested alias usage
+alias inner='echo inner'
+alias outer='inner'
+outer
+
+# Test alias with exit codes
+alias falsey='false'
+falsey
+echo $?
+
+alias truey='true'
+truey
+echo $?
+
+# Edge case: empty alias list after clearing
+unalias -a
+alias
+# Should print nothing or minimal output

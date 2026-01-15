@@ -13,11 +13,12 @@
 #include "shell.h"
 #include <fcntl.h>
 #include <stdio.h>
+#include <readline/readline.h>
 #include <readline/history.h>
 #include <stdbool.h>
 #include <unistd.h>
-# include "helpers.h"
-# include "env.h"
+#include "helpers.h"
+#include "env.h"
 
 t_string	parse_single_cmd(t_string hist, size_t *cur)
 {
@@ -46,10 +47,8 @@ t_string	parse_single_cmd(t_string hist, size_t *cur)
 		bs = false;
 		(*cur)++;
 	}
-	// Ensure null-termination for add_history
-	if (!vec_ensure_space_n(&cmd, 1)) {
-		// handle allocation error if needed
-	}
+	if (!vec_ensure_space_n(&cmd, 1))
+		return (cmd);
 	((char *)cmd.ctx)[cmd.len] = '\0';
 	return (cmd);
 }
@@ -57,17 +56,22 @@ t_string	parse_single_cmd(t_string hist, size_t *cur)
 t_vec	parse_hist_file(t_string hist)
 {
 	size_t		cur;
-	t_vec	ret;
+	t_vec		ret;
 	char		*cmd;
 
 	cur = 0;
 	vec_init(&ret);
-	ret.elem_size = sizeof(char *); // <--- store pointers
+	ret.elem_size = sizeof(char *);
 	while (cur < hist.len)
 	{
 		cmd = (char *)parse_single_cmd(hist, &cur).ctx;
-		vec_push(&ret, &cmd); // <--- push address of pointer
-		add_history(cmd);
+		if (cmd && cmd[0] != '\0')
+		{
+			vec_push(&ret, &cmd);
+			add_history(cmd);
+		}
+		else
+			free(cmd);
 	}
 	return (ret);
 }
@@ -109,41 +113,111 @@ t_string	encode_cmd_hist(char *cmd)
 	ret.elem_size = 1;
 	while (*cmd)
 	{
-		if (*cmd == '\\') {
-			char tmp = '\\'; vec_push(&ret, &tmp);
+		if (*cmd == '\\')
+		{
+			char tmp = '\\';
+			vec_push(&ret, &tmp);
 		}
-		if (*cmd == '\n') {
-			char tmp = '\\'; vec_push(&ret, &tmp);
+		if (*cmd == '\n')
+		{
+			char tmp = '\\';
+			vec_push(&ret, &tmp);
 		}
-		{ char tmp = *cmd; vec_push(&ret, &tmp); }
+		{
+			char tmp = *cmd;
+			vec_push(&ret, &tmp);
+		}
 		cmd++;
 	}
-	{ char tmp = '\n'; vec_push(&ret, &tmp); }
-	// Ensure null-termination for write_to_file
-	if (!vec_ensure_space_n(&ret, 1)) {
-		// handle allocation error if needed
+	{
+		char tmp = '\n';
+		vec_push(&ret, &tmp);
 	}
+	if (!vec_ensure_space_n(&ret, 1))
+		return (ret);
 	((char *)ret.ctx)[ret.len] = '\0';
 	return (ret);
+}
+
+/*
+** Check if the current input line is a duplicate of the last history entry.
+** Returns true if it's a duplicate (should not be added again).
+*/
+static bool	is_duplicate_entry(t_shell *state, const char *entry, size_t len)
+{
+	char	*last;
+
+	if (state->hist.hist_cmds.len == 0)
+		return (false);
+	last = ((char **)state->hist.hist_cmds.ctx)[state->hist.hist_cmds.len - 1];
+	if (!last)
+		return (false);
+	return (str_slice_eq_str((char *)entry, len, last));
+}
+
+/*
+** Check if entry consists only of whitespace.
+*/
+static bool	is_whitespace_only(const char *s, size_t len)
+{
+	size_t	i;
+
+	i = 0;
+	while (i < len)
+	{
+		if (s[i] != ' ' && s[i] != '\t' && s[i] != '\n')
+			return (false);
+		i++;
+	}
+	return (true);
 }
 
 void	manage_history(t_shell *state)
 {
 	char	*hist_entry;
 	char	*enc_hist_entry;
+	size_t	entry_len;
 
-	if (worthy_of_being_remembered(state))
+	if (!state->hist.hist_active)
 	{
-		// Ensure null-termination before using ft_strndup
-		if (state->readline_buff.cursor > 0 && state->readline_buff.buff.ctx)
-			((char *)state->readline_buff.buff.ctx)[state->readline_buff.cursor - 1] = '\0';
-		hist_entry = ft_strndup((char *)state->readline_buff.buff.ctx,
-				state->readline_buff.cursor - 1);
-		add_history(hist_entry);
-		vec_push(&state->hist.hist_cmds, &hist_entry);
-		if (state->hist.append_fd >= 0)
+		buff_readline_reset(&state->readline_buff);
+		return ;
+	}
+	if (state->readline_buff.cursor < 2 || !state->readline_buff.buff.ctx)
+	{
+		buff_readline_reset(&state->readline_buff);
+		return ;
+	}
+	entry_len = state->readline_buff.cursor - 1;
+	/* Skip whitespace-only entries */
+	if (is_whitespace_only((char *)state->readline_buff.buff.ctx, entry_len))
+	{
+		buff_readline_reset(&state->readline_buff);
+		return ;
+	}
+	/* Skip duplicate entries (same as last command) */
+	if (is_duplicate_entry(state, (char *)state->readline_buff.buff.ctx,
+			entry_len))
+	{
+		buff_readline_reset(&state->readline_buff);
+		return ;
+	}
+	/* Null-terminate for strdup */
+	((char *)state->readline_buff.buff.ctx)[entry_len] = '\0';
+	hist_entry = ft_strndup((char *)state->readline_buff.buff.ctx, entry_len);
+	if (!hist_entry)
+	{
+		buff_readline_reset(&state->readline_buff);
+		return ;
+	}
+	add_history(hist_entry);
+	vec_push(&state->hist.hist_cmds, &hist_entry);
+	/* Write to history file if fd is valid */
+	if (state->hist.append_fd >= 0)
+	{
+		enc_hist_entry = (char *)encode_cmd_hist(hist_entry).ctx;
+		if (enc_hist_entry)
 		{
-			enc_hist_entry = (char *)encode_cmd_hist(hist_entry).ctx;
 			if (write_to_file(enc_hist_entry, state->hist.append_fd))
 			{
 				warning_error("Failed to write to the history file");
@@ -158,30 +232,39 @@ void	manage_history(t_shell *state)
 
 bool	worthy_of_being_remembered(t_shell *state)
 {
-	if (state->readline_buff.cursor > 1 && state->hist.hist_active
-		&& (!state->hist.hist_cmds.len
-			|| !str_slice_eq_str((char *)state->readline_buff.buff.ctx,
-				state->readline_buff.cursor - 1,
-				((char **)state->hist.hist_cmds.ctx)[state->hist.hist_cmds.len - 1]
-			)
-		)
-	)
-	{
-		return (true);
-	}
-	return (false);
+	size_t	entry_len;
+
+	if (!state->hist.hist_active)
+		return (false);
+	if (state->readline_buff.cursor < 2)
+		return (false);
+	if (!state->readline_buff.buff.ctx)
+		return (false);
+	entry_len = state->readline_buff.cursor - 1;
+	if (is_whitespace_only((char *)state->readline_buff.buff.ctx, entry_len))
+		return (false);
+	if (is_duplicate_entry(state, (char *)state->readline_buff.buff.ctx,
+			entry_len))
+		return (false);
+	return (true);
 }
 
 void	init_history(t_shell *state)
 {
 	state->hist = (t_history){.append_fd = -1, .hist_active = true};
+	vec_init(&state->hist.hist_cmds);
+	state->hist.hist_cmds.elem_size = sizeof(char *);
 	parse_history_file(state);
+	/* Setup readline for prefix-based history search */
+	setup_history_search();
 }
 
 void	free_hist(t_shell *state)
 {
 	size_t	i;
 
+	if (!state->hist.hist_cmds.ctx)
+		return ;
 	i = 0;
 	while (i < state->hist.hist_cmds.len)
 	{
@@ -189,7 +272,13 @@ void	free_hist(t_shell *state)
 		i++;
 	}
 	free(state->hist.hist_cmds.ctx);
-	vec_init(&state->hist.hist_cmds);
+	state->hist.hist_cmds.ctx = NULL;
+	state->hist.hist_cmds.len = 0;
+	if (state->hist.append_fd >= 0)
+	{
+		close(state->hist.append_fd);
+		state->hist.append_fd = -1;
+	}
 }
 
 char	*get_hist_file_path(t_shell *state)
@@ -201,15 +290,24 @@ char	*get_hist_file_path(t_shell *state)
 	if (!env || !env->value)
 	{
 		warning_error("HOME is not set, can't get the history");
-		return (0);
+		return (NULL);
 	}
 	vec_init(&full_path);
 	full_path.elem_size = 1;
 	vec_push_str(&full_path, env->value);
-	if (!vec_str_ends_with_str(&full_path, "/")) {
-		char tmp = '/'; vec_push(&full_path, &tmp);
+	if (!vec_str_ends_with_str(&full_path, "/"))
+	{
+		char tmp = '/';
+		vec_push(&full_path, &tmp);
 	}
 	vec_push_str(&full_path, HIST_FILE);
-	return (char *)full_path.ctx;
+	/* Null-terminate */
+	if (!vec_ensure_space_n(&full_path, 1))
+	{
+		free(full_path.ctx);
+		return (NULL);
+	}
+	((char *)full_path.ctx)[full_path.len] = '\0';
+	return ((char *)full_path.ctx);
 }
 

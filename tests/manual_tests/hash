@@ -1,0 +1,96 @@
+# ============================================================================
+# HASH BUILTIN MANUAL TESTS
+# ============================================================================
+# Test the hash builtin to ensure command path caching works correctly
+# Run these commands interactively in the shell or pipe to minishell -c
+
+# View empty hash table
+hash
+# Should print "hash: hash table empty" or similar
+
+# Hash a common command
+hash ls
+hash
+# Should show ls with its path
+
+# Hash multiple commands
+hash cat
+hash grep
+hash echo
+hash pwd
+hash
+# Should list all cached commands
+
+# Hash a command that might not exist
+hash nonexistentcommand12345
+# Should print error "hash: nonexistentcommand12345: not found"
+
+# Hash with absolute path
+hash /bin/ls
+hash
+# Should cache /bin/ls
+
+# Reset hash table
+hash -r
+hash
+# Should show empty table again
+
+# Hash commands and verify they work
+hash ls
+ls /tmp
+# Should work normally
+
+# Delete specific hash entry
+hash echo
+hash
+hash -d echo
+hash
+# echo should be gone from cache
+
+# Delete multiple entries
+hash ls cat grep
+hash
+hash -d ls cat
+hash
+# Only grep should remain
+
+# Test hash with non-existent command (should fail gracefully)
+hash /nonexistent/path/to/command
+# Should print error
+
+# Test hash after clearing and re-hashing
+hash -r
+hash ls
+hash grep
+hash
+hash -r
+hash
+# Should be empty again
+
+# Practical usage: hash common tools
+hash git
+hash find
+hash xargs
+hash python3
+hash
+# Should show all cached paths
+
+# Delete and verify removal
+hash -d git
+hash
+# git should not be in the list
+
+# Edge case: hash with spaces in output display
+hash find
+hash
+# Should handle find path correctly
+
+# Performance test: hash many commands
+hash ls cat grep echo pwd cd ls pwd
+hash
+# Should handle multiple hashes without issue
+
+# Final state: clear everything
+hash -r
+hash
+# Should be empty

@@ -14,14 +14,14 @@
 CC := gcc
 CFLAGS		:= -Wall -Wextra -Werror -std=gnu99	-D_XOPEN_SOURCE=700
 OPTFLAGS	:= -O2 -march=native
-LDFLAGS		:= -flto
+LDFLAGS		:= -flto -lreadline
 DEBFLAGS	:= -g3 -ggdb -fsanitize=address,leak
 
 # Choose flags: default = debug; pass OPT when calling make to enable optimizations
 ifdef OPT
 ALLFLAGS := $(CFLAGS) $(OPTFLAGS) $(LDFLAGS)
 else
-ALLFLAGS := $(CFLAGS) $(DEBFLAGS)
+ALLFLAGS := $(CFLAGS) $(DEBFLAGS) $(LDFLAGS)
 endif
 
 INCLUDES := -I./incs -I./vendor/libft/include -I./vendor/libft -I./vendor/libft/include/internals -I./incs/public

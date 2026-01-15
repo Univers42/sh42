@@ -24,7 +24,7 @@ static void	init_builtin_hash(t_hash *h)
 	hash_set(h, "pwd", (void *)builtin_pwd);
 	hash_set(h, "env", (void *)builtin_env);
 	hash_set(h, "unset", (void *)builtin_unset);
-	//hash_set(h, "histoy", (void *)builtin_history);
+	hash_set(h, "history", (void *)builtin_history);
 }
 
 int	(*builtin_func(char *name))(t_shell *state, t_vec argv)

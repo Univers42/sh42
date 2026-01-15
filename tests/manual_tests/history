@@ -1,0 +1,116 @@
+# ============================================================================
+# HISTORY BUILTIN MANUAL TESTS
+# ============================================================================
+# Test the history builtin to ensure command history works correctly
+# Run these commands interactively in the shell
+
+# Display full history
+history
+# Should show all commands executed so far
+
+# Display last N entries
+echo "First command"
+echo "Second command"
+echo "Third command"
+history 2
+# Should show only last 2 commands
+
+# Display single entry
+history 1
+# Should show only the last command
+
+# Display last 10 entries
+history 10
+# Shows up to 10 commands (or fewer if history is shorter)
+
+# Add more commands to history
+pwd
+ls
+cd /tmp
+cd -
+history
+# Should now have more entries
+
+# Clear history
+history -c
+history
+# Should show no history (or empty output)
+
+# Add commands after clearing
+echo "After clear 1"
+echo "After clear 2"
+echo "After clear 3"
+history
+# Should only show the 3 commands after clear
+
+# Delete specific history entry (1-indexed)
+history -d 1
+history
+# First entry should be gone
+
+# Delete multiple entries (do one at a time, indices shift)
+history -d 1
+history
+# Delete another entry
+
+# Test error cases
+history -d 0
+# Should fail: invalid index (must be >= 1)
+
+history -d 999
+# Should fail: index out of range
+
+history 0
+# Should show all history (or handle gracefully)
+
+history -1
+# Should show all history (or handle gracefully)
+
+# Test with various commands
+export MYVAR=hello
+echo $MYVAR
+history
+# Should contain all executed commands
+
+# Re-test last N
+history 5
+# Should show last 5 commands
+
+# Clear and verify empty
+history -c
+history
+# Should be empty
+
+# Build up history again
+echo line1
+echo line2
+echo line3
+echo line4
+echo line5
+history
+# Should have 5 entries
+
+# Display last 3
+history 3
+# Should show the 3 most recent
+
+# Delete entry 2
+history -d 2
+history
+# Entry at position 2 should be removed
+
+# Test history with special characters
+echo "test with spaces and 'quotes'"
+echo 'single quoted'
+echo "double quoted with $MYVAR"
+history 5
+# Should preserve quotes in history
+
+# Test numeric argument bounds
+history 100
+# Should show all history (capped at available)
+
+# Final cleanup
+history -c
+history
+# Should be empty
