@@ -42,7 +42,7 @@ static int	history_display(t_shell *state, int count)
 
 /*
 ** Rewrite the entire history file from our vector.
-** This is called after delete/clear to sync the file.
+** This is called after clear to sync the file.
 */
 static void	rewrite_history_file(t_shell *state)
 {
@@ -105,61 +105,6 @@ static int	history_clear(t_shell *state)
 }
 
 /*
-** Delete a specific history entry by 1-based index.
-** Returns 0 on success, 1 on error.
-*/
-static int	history_delete(t_shell *state, char *arg)
-{
-	int			idx;
-	size_t		pos;
-	size_t		i;
-	char		**arr;
-	HIST_ENTRY	*entry;
-
-	if (ft_checked_atoi(arg, &idx, 0))
-	{
-		ft_eprintf("%s: history: %s: numeric argument required\n",
-			state->context, arg);
-		return (1);
-	}
-	if (idx < 1)
-	{
-		ft_eprintf("%s: history: %d: history position out of range\n",
-			state->context, idx);
-		return (1);
-	}
-	pos = (size_t)(idx - 1);
-	if (pos >= state->hist.hist_cmds.len)
-	{
-		ft_eprintf("%s: history: %d: history position out of range\n",
-			state->context, idx);
-		return (1);
-	}
-	/* Remove from readline's history FIRST (before modifying our vector) */
-	entry = remove_history((int)pos);
-	if (entry)
-	{
-		/* readline allocated entry->line, we must free it */
-		free(entry->line);
-		free(entry);
-	}
-	/* Now free the entry from our vector */
-	arr = (char **)state->hist.hist_cmds.ctx;
-	free(arr[pos]);
-	/* Shift array left */
-	i = pos;
-	while (i + 1 < state->hist.hist_cmds.len)
-	{
-		arr[i] = arr[i + 1];
-		i++;
-	}
-	state->hist.hist_cmds.len--;
-	/* Rewrite the history file to reflect the deletion */
-	rewrite_history_file(state);
-	return (0);
-}
-
-/*
 ** Main history builtin entry point.
 */
 int	builtin_history(t_shell *state, t_vec argv)
@@ -181,27 +126,7 @@ int	builtin_history(t_shell *state, t_vec argv)
 		arg = ((char **)argv.ctx)[i];
 		if (ft_strcmp(arg, "-c") == 0)
 			history_clear(state);
-		else if (ft_strncmp(arg, "-d", 2) == 0)
-		{
-			if (arg[2] != '\0')
-			{
-				if (history_delete(state, arg + 2))
-					return (1);
-			}
-			else if (i + 1 >= argv.len)
-			{
-				ft_eprintf("%s: history: -d: option requires an argument\n",
-					state->context);
-				return (1);
-			}
-			else
-			{
-				i++;
-				if (history_delete(state, ((char **)argv.ctx)[i]))
-					return (1);
-			}
-		}
-		else if (arg[0] == '-' && arg[1] != '\0' && !ft_isdigit(arg[1]))
+		else if (arg[0] == '-' && arg[1] != '\0')
 		{
 			ft_eprintf("%s: history: %s: invalid option\n",
 				state->context, arg);
