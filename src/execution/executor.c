@@ -12,6 +12,7 @@
 
 #include "shell.h"
 #include "redir.h"
+#include "arith.h"
 
 #include <fcntl.h>
 #include <stddef.h>
@@ -29,6 +30,37 @@
 # include "expander.h"
 # include "input.h"
 # include "executor_types.h"
+
+/* Execute arithmetic command ((expr)) */
+static t_exe_res	execute_arith_command(t_shell *state, t_ast_node *node)
+{
+	t_token		*expr_tok;
+	char		*result;
+	long		val;
+
+	if (node->children.len == 0)
+		return (res_status(1));
+	
+	expr_tok = &((t_ast_node *)node->children.ctx)[0].token;
+	
+	/* Evaluate the arithmetic expression */
+	result = arith_expand(state, expr_tok->start, expr_tok->len);
+	if (!result)
+	{
+		/* Error already printed by arith_expand, return exit code 1 */
+		return (res_status(1));
+	}
+	
+	/* Get the result value - exit code is 0 if non-zero, 1 if zero */
+	val = ft_atoi(result);
+	free(result);
+	
+	/* Bash: (( expr )) returns 0 if expr is non-zero, 1 if zero */
+	if (val != 0)
+		return (res_status(0));
+	else
+		return (res_status(1));
+}
 
 // returns pid
 t_exe_res	execute_subshell(t_shell *state, t_executable_node *exe)
@@ -62,6 +94,16 @@ t_exe_res	execute_command(t_shell *state, t_executable_node *exe)
 	int			redir_idx;
 
 	ft_assert(exe->node->children.len >= 1);
+	
+	/* Handle arithmetic command */
+	if (((t_ast_node *)exe->node->children.ctx)[0].node_type == AST_ARITH_CMD)
+	{
+		t_exe_res res = execute_arith_command(state, 
+			&((t_ast_node *)exe->node->children.ctx)[0]);
+		free_executable_node(exe);
+		return (res);
+	}
+	
 	if (((t_ast_node *)exe->node->children.ctx)[0].node_type == AST_SIMPLE_COMMAND)
 	{
 		exe->node = &((t_ast_node *)exe->node->children.ctx)[0];
@@ -119,17 +161,27 @@ void	execute_top_level(t_shell *state)
 	exe.redirs.elem_size = sizeof(int);
 	state->heredoc_idx = 0;
 
-	/* NOTE: The monitor child process that tracked trailing newlines has been
-	   disabled because it caused a second minishell process to appear in `ps`.
-	   The feature printed "%\n" when output didn't end with a newline. */
-
 	/* gather heredocs and execute the tree */
 	if (!g_should_unwind)
 		gather_heredocs(state, &state->tree, false);
-	if (!g_should_unwind)
+	
+	/* Check for arithmetic error BEFORE executing */
+	if (g_should_unwind == 0xDEAD)
+	{
+		res = state->last_cmd_status_res;
+		g_should_unwind = 0;
+	}
+	else if (!g_should_unwind)
 		res = execute_tree_node(state, &exe);
 	else
 		res = res_status(CANCELED);
+
+	/* Check again after execution in case it was set during */
+	if (g_should_unwind == 0xDEAD)
+	{
+		res = state->last_cmd_status_res;
+		g_should_unwind = 0;
+	}
 
 	if (res.c_c)
 	{

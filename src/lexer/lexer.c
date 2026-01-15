@@ -22,6 +22,126 @@ static void	advance_bs(char **str)
 	*str += 1;
 }
 
+/* Check if (( starts an arithmetic expression by looking for matching ))
+   Returns true if this looks like arithmetic, false if it's nested subshells */
+static bool	is_arithmetic_expansion(char *str)
+{
+	int		depth;
+	char	*p;
+
+	if (str[0] != '(' || str[1] != '(')
+		return (false);
+	p = str + 2;
+	depth = 2;
+	while (*p && depth > 0)
+	{
+		if (*p == '\\' && p[1])
+		{
+			p += 2;
+			continue;
+		}
+		if (*p == '\'')
+		{
+			p++;
+			while (*p && *p != '\'')
+				p++;
+			if (*p)
+				p++;
+			continue;
+		}
+		if (*p == '"')
+		{
+			p++;
+			while (*p && *p != '"')
+			{
+				if (*p == '\\' && p[1])
+					p++;
+				p++;
+			}
+			if (*p)
+				p++;
+			continue;
+		}
+		/* Check for )) which closes arithmetic */
+		if (*p == ')' && p[1] == ')' && depth == 2)
+			return (true);
+		/* If we see ) followed by && or || or ; before )), it's nested subshells */
+		if (*p == ')' && depth == 2)
+		{
+			char *after = p + 1;
+			while (*after == ' ' || *after == '\t')
+				after++;
+			if ((*after == '&' && after[1] == '&') ||
+				(*after == '|' && after[1] == '|') ||
+				*after == ';' || *after == '\n')
+				return (false);
+		}
+		if (*p == '(')
+			depth++;
+		else if (*p == ')')
+			depth--;
+		p++;
+	}
+	return (false);
+}
+
+/* Parse arithmetic command (( expr )) as a single token */
+static char	*parse_arith_cmd(t_deque_tt *tokens, char **str)
+{
+	char	*start;
+	char	*p;
+	int		depth;
+	t_token	tmp;
+
+	start = *str;
+	p = start + 2;
+	depth = 2;
+	while (*p && depth > 0)
+	{
+		if (*p == '\\' && p[1])
+		{
+			p += 2;
+			continue;
+		}
+		if (*p == '\'')
+		{
+			p++;
+			while (*p && *p != '\'')
+				p++;
+			if (*p)
+				p++;
+			continue;
+		}
+		if (*p == '"')
+		{
+			p++;
+			while (*p && *p != '"')
+			{
+				if (*p == '\\' && p[1])
+					p++;
+				p++;
+			}
+			if (*p)
+				p++;
+			continue;
+		}
+		if (*p == ')' && p[1] == ')' && depth == 2)
+		{
+			p += 2;
+			break;
+		}
+		if (*p == '(')
+			depth++;
+		else if (*p == ')')
+			depth--;
+		p++;
+	}
+	tmp = (t_token){.start = start, .len = (int)(p - start), .tt = TT_ARITH_CMD};
+	deque_push_end(&tokens->deqtok, &tmp);
+	*str = p;
+	return (0);
+}
+
 static char	*parse_word(t_deque_tt *tokens, char **str)
 {
 	char	*start;
@@ -113,26 +233,22 @@ void	parse_op(t_deque_tt *tokens, char **str)
 {
 	char		*start;
 	int			op_idx;
-	t_op_map	operators[15];
+	t_op_map	operators[13];
 	t_token		tmp;
 
 	operators[0] = (t_op_map){"|", TT_PIPE};
 	operators[1] = (t_op_map){"<<", TT_HEREDOC};
 	operators[2] = (t_op_map){"<<-", TT_HEREDOC};
-	/* correct append operator */
 	operators[3] = (t_op_map){">>", TT_APPEND};
-	/* IMPORTANT: (( must come BEFORE ( to match longest first */
-	operators[4] = (t_op_map){"((", TT_ARITH_START};
-	operators[5] = (t_op_map){"(", TT_BRACE_LEFT};
-	operators[6] = (t_op_map){")", TT_BRACE_RIGHT};
-	operators[7] = (t_op_map){"<", TT_REDIRECT_LEFT};
-	operators[8] = (t_op_map){">", TT_REDIRECT_RIGHT};
-	operators[9] = (t_op_map){"&&", TT_AND};
-	/* single '&' for background execution */
-	operators[10] = (t_op_map){"&", TT_AMPERSAND};
-	operators[11] = (t_op_map){"||", TT_OR};
-	operators[12] = (t_op_map){";", TT_SEMICOLON};
-	operators[13] = (t_op_map){0, TT_END};
+	operators[4] = (t_op_map){"(", TT_BRACE_LEFT};
+	operators[5] = (t_op_map){")", TT_BRACE_RIGHT};
+	operators[6] = (t_op_map){"<", TT_REDIRECT_LEFT};
+	operators[7] = (t_op_map){">", TT_REDIRECT_RIGHT};
+	operators[8] = (t_op_map){"&&", TT_AND};
+	operators[9] = (t_op_map){"&", TT_AMPERSAND};
+	operators[10] = (t_op_map){"||", TT_OR};
+	operators[11] = (t_op_map){";", TT_SEMICOLON};
+	operators[12] = (t_op_map){0, TT_END};
 	start = *str;
 	op_idx = longest_matching_str(operators, *str);
 	ft_assert(op_idx != -1);
@@ -143,8 +259,6 @@ void	parse_op(t_deque_tt *tokens, char **str)
 	deque_push_end(&tokens->deqtok, &tmp);
 }
 
-// If returns 0, it finished properly, if it returns a ptr, make a prompt
-// with that str
 char	*tokenizer(char *str, t_deque_tt *ret)
 {
 	char	*prompt;
@@ -158,6 +272,14 @@ char	*tokenizer(char *str, t_deque_tt *ret)
 		{
 			while (*str && *str != '\n')
 				str++;
+			continue;
+		}
+		/* Check for (( arithmetic command */
+		if (*str == '(' && str[1] == '(' && is_arithmetic_expansion(str))
+		{
+			prompt = parse_arith_cmd(ret, &str);
+			if (prompt)
+				break;
 			continue;
 		}
 		if (*str == '\'' || *str == '"' || *str == '$'

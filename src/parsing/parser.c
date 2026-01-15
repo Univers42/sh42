@@ -22,11 +22,7 @@ t_ast_node unexpected(t_shell *state, t_parser *parser, t_ast_node ret, t_deque_
 
 bool	is_simple_cmd_token(t_tt tt)
 {
-	if (tt == TT_REDIRECT_LEFT
-		|| tt == TT_WORD
-		|| tt == TT_REDIRECT_RIGHT
-		|| tt == TT_APPEND
-		|| tt == TT_HEREDOC)
+	if (tt == TT_REDIRECT_LEFT || tt == TT_ARITH_CMD)
 		return (true);
 	return (false);
 }
@@ -35,15 +31,57 @@ t_ast_node	create_subtoken_node(t_token t, int offset, int end_offset, t_tt tt)
 {
 	t_ast_node	ret;
 
+	(void)t;
+	(void)offset;
+	(void)end_offset;
 	ret = (t_ast_node){.token = {
-		.len = end_offset - offset,
-		.start = t.start + offset,
 		.tt = tt,
 	},
 		.node_type = AST_TOKEN};
 	/* ensure children vector is usable for later pushes */
 	vec_init(&ret.children);
 	ret.children.elem_size = sizeof(t_ast_node);
+	return (ret);
+}
+
+/* Parse arithmetic command (( expr )) into AST_ARITH_CMD node */
+t_ast_node	parse_arith_cmd(t_shell *state, t_parser *parser, t_deque_tt *tokens)
+{
+	t_ast_node	ret;
+	t_token		tok;
+	t_ast_node	expr_node;
+	char		*expr_start;
+	int			expr_len;
+
+	ret = (t_ast_node){.node_type = AST_ARITH_CMD};
+	vec_init(&ret.children);
+	ret.children.elem_size = sizeof(t_ast_node);
+	
+	tok = *(t_token *)deque_pop_start(&tokens->deqtok);
+	
+	/* Extract expression from (( expr )) - skip (( and )) */
+	if (tok.len < 4)
+	{
+		parser->res = RES_FatalError;
+		ft_eprintf("%s: syntax error in arithmetic expression\n", state->context);
+		return (ret);
+	}
+	expr_start = tok.start + 2;  /* skip (( */
+	expr_len = tok.len - 4;      /* remove (( and )) */
+	
+	/* Create a token node containing just the expression */
+	expr_node = (t_ast_node){.node_type = AST_TOKEN};
+	expr_node.token = (t_token){
+		.tt = TT_WORD,
+		.start = expr_start,
+		.len = expr_len,
+		.allocated = false
+	};
+	vec_init(&expr_node.children);
+	expr_node.children.elem_size = sizeof(t_ast_node);
+	
+	vec_push(&ret.children, &expr_node);
+	
 	return (ret);
 }
 

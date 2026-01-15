@@ -31,7 +31,8 @@ typedef enum e_ast_t
 	AST_COMPOUND_LIST,
 	AST_COMMAND,
 	AST_ASSIGNMENT_WORD,
-} t_ast_t;
+	AST_ARITH_CMD  /* (( expr )) arithmetic command */
+}	t_ast_t;
 
 typedef struct s_ast_node
 {

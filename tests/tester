@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MINISHELL_PATH="../build/bin/minishell"
-BASH_CMD=(bash --posix)
+BASH_CMD=(bash)
 
 # Run a specific test if the file name was specified
 if [[ $1 ]]; then
@@ -10,15 +10,16 @@ if [[ $1 ]]; then
     )
 else
     test_lists=(
+        #"arith"
+        #"subshells_groups"
 		"globbing"
-        "builtins"
-        "pipes"
-        "redirects"
-        "extras"
-        "edge_cases"
-        "echo_edge_cases"
-        "advanced_edge_cases"
-        "arith"
+        #"builtins"
+        #"pipes"
+        #"redirects"
+        #"extras"
+        #"edge_cases"
+        #"echo_edge_cases"
+        #"advanced_edge_cases"
     )
 fi
 

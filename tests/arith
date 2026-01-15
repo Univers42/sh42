@@ -50,3 +50,175 @@ echo $((2 ** 10))
 echo $((3 ** 3 - 1))
 echo $((10 + 20 * 30 / 40 - 50))
 echo $((((1 + 2) * (3 + 4)) - (5 * 6)))
+
+# Increment and Decrement operators
+echo $((i=5; ++i))
+echo $((i=5; i++))
+echo $((i=5; --i))
+echo $((i=5; i--))
+echo $((i=0; ++i + ++i))
+echo $((i=10; i-- - --i))
+echo $((i=5; ++i * 2))
+echo $((i=5; i++ + 10))
+
+# Pre and post increment in expressions
+echo $((x=1; y=++x; y))
+echo $((x=1; y=x++; y))
+echo $((x=10; y=--x; y))
+echo $((x=10; y=x--; y))
+echo $((x=5; ++x + x++))
+echo $((x=5; x++ + ++x))
+
+# Comparison operators: <, >, <=, >=
+echo $((5 < 10))
+echo $((10 < 5))
+echo $((10 > 5))
+echo $((5 > 10))
+echo $((5 <= 5))
+echo $((5 <= 10))
+echo $((10 <= 5))
+echo $((5 >= 5))
+echo $((10 >= 5))
+echo $((5 >= 10))
+
+# Equality operators: ==, !=
+echo $((5 == 5))
+echo $((5 == 10))
+echo $((5 != 5))
+echo $((5 != 10))
+echo $((0 == 0))
+echo $((1 == 1))
+
+# Logical AND operator: &&
+echo $((1 && 1))
+echo $((1 && 0))
+echo $((0 && 1))
+echo $((0 && 0))
+echo $((5 > 3 && 10 > 5))
+echo $((5 > 10 && 10 > 5))
+echo $((5 < 10 && 3 < 7))
+
+# Logical OR operator: ||
+echo $((1 || 1))
+echo $((1 || 0))
+echo $((0 || 1))
+echo $((0 || 0))
+echo $((5 > 10 || 10 > 5))
+echo $((5 > 3 || 10 < 5))
+echo $((5 < 3 || 10 < 5))
+
+# Logical NOT operator (if supported)
+echo $((!(1)))
+echo $((!(0)))
+echo $((!(5 > 10)))
+echo $((!(5 < 10)))
+
+# Bitwise operators (if supported)
+echo $((5 & 3))
+echo $((5 | 3))
+echo $((5 ^ 3))
+echo $((~5))
+echo $((5 << 1))
+echo $((5 >> 1))
+
+# Mixed operators with proper precedence
+echo $((2 + 3 * 4))
+echo $((2 * 3 + 4))
+echo $((10 - 5 + 3))
+echo $((10 + 5 - 3))
+echo $((20 / 4 * 2))
+echo $((2 * 3 ** 2))
+echo $((2 ** 3 * 2))
+
+# Comparison with arithmetic
+echo $((5 + 5 == 10))
+echo $((5 + 5 != 10))
+echo $((3 * 4 > 10))
+echo $((3 * 4 < 15))
+echo $((10 / 2 == 5))
+echo $((10 / 3 >= 3))
+
+# Logical operators with comparisons
+echo $((5 > 3 && 10 > 5 && 2 > 1))
+echo $((5 > 10 || 3 > 1 || 2 > 5))
+echo $((5 > 3 && 10 < 5 || 2 > 1))
+echo $((1 && 1 && 1))
+echo $((0 || 0 || 1))
+echo $((1 && 0 || 1))
+
+# Ternary operator (if supported)
+echo $((5 > 3 ? 1 : 0))
+echo $((5 < 3 ? 1 : 0))
+echo $((10 > 5 ? 100 : 200))
+echo $((10 < 5 ? 100 : 200))
+echo $((1 && 1 ? 42 : 0))
+echo $((0 || 0 ? 100 : 50))
+
+# Complex nested expressions
+echo $((((5 + 3) * 2 - 4) / 2))
+echo $((5 > 3 && 10 > 5 ? 1 : 0))
+echo $((5 < 3 || 10 > 5 ? 1 : 0))
+echo $((2 + 3 * 4 - 5 / 2 >= 10))
+echo $((10 - 3 * 2 + 1 == 5))
+
+# Edge cases with operators
+echo $((5 + -3))
+echo $((5 * -2))
+echo $((0 - 5))
+echo $((0 + 0 + 0))
+echo $((1 && 1 && 1 && 1))
+echo $((0 || 0 || 0 || 1))
+
+# Invalid arithmetic tests (syntax errors with semicolons - should return exit code 1)
+# These have semicolon separators which are not valid in arithmetic expressions
+echo $((i=0; i++ && i++ && i++; i))
+echo $((x=10; x-- >= 9))
+echo $((a=5; b=10; a+b))
+echo $((i=0; ++i))
+echo $((x=5; y=3; x > y ? 1 : 0))
+echo $((x=1; y=++x; y))
+echo $((x=1; y=x++; y))
+echo $((x=10; y=--x; y))
+echo $((x=10; y=x--; y))
+echo $((x=5; ++x + x++))
+echo $((x=5; x++ + ++x))
+
+# Valid alternatives using comma operator instead of semicolon
+echo $((i=0, ++i, i))
+echo $((x=10, x--, x >= 9 ? 1 : 0))
+echo $((a=5, b=10, a+b))
+echo $((i=0, ++i))
+echo $((x=5, y=3, x > y ? 1 : 0))
+echo $((x=1, y=++x, y))
+echo $((x=1, y=x++, y))
+echo $((x=10, y=--x, y))
+echo $((x=10, y=x--, y))
+echo $((x=5, ++x + x++))
+echo $((x=5, x++ + ++x))
+
+# More invalid syntax tests (comma vs semicolon distinction)
+echo $((1; 2))
+echo $((x=1; y=2; x+y))
+
+# Valid comma-separated expressions
+echo $((1, 2))
+echo $((x=1, y=2, x+y))
+
+# Assignment in arithmetic
+echo $((x=5, x))
+echo $((a=10, b=20, a+b))
+echo $((c=3, d=4, c*d))
+
+# Ternary operator with assignments
+echo $((x=1, y=2, x > y ? x : y))
+echo $((a=5, b=3, a < b ? b : a))
+
+# Complex valid expressions
+echo $((x=2, y=3, z=4, x+y*z))
+echo $((i=5, j=3, k=2, i*j+k))
+echo $((a=1, b=1, a&&b ? 1 : 0))
+
+# Increment/decrement with comma operator
+echo $((i=5, ++i, i))
+echo $((x=10, x--, x))
+echo $((a=3, ++a, --a, a))

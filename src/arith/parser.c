@@ -14,274 +14,406 @@
 #include "shell.h"
 #include "env.h"
 #include "libft.h"
+#include <stdlib.h>
 
-static long long	get_var_value(t_arith_parser *p, const char *name, int len)
+static long	get_var(t_arith_ctx *ctx, const char *name)
 {
 	char	*val;
-	char	*key;
-	int		result;
 
-	key = ft_strndup(name, len);
-	if (!key)
-		return (0);
-	val = env_expand_n(p->shell, key, len);
-	free(key);
+	val = env_expand(ctx->state, (char *)name);
 	if (!val || !*val)
 		return (0);
-	if (ft_checked_atoi(val, &result, 42) != 0)
-		return (0);
-	return ((long long)result);
+	return (ft_atoi(val));
 }
 
-static void	expect(t_arith_parser *p, t_arith_tok type)
+static void	set_var(t_arith_ctx *ctx, const char *name, long value)
 {
-	if (p->lexer->current.type != type)
-	{
-		p->error = true;
-		return;
-	}
-	arith_lexer_advance(p->lexer);
+	char	*str;
+
+	str = ft_itoa((int)value);
+	env_set(&ctx->state->env, (t_env){
+		.exported = false,
+		.key = ft_strdup(name),
+		.value = str
+	});
 }
 
-/* Primary: number | variable | '(' expr ')' */
-long long	arith_parse_primary(t_arith_parser *p)
-{
-	t_arith_token	tok;
-	long long		val;
+static long	parse_ternary(t_arith_ctx *ctx);
 
-	if (p->error)
-		return (0);
-	tok = arith_lexer_peek(p->lexer);
-	if (tok.type == ATOK_NUM)
+static long	parse_primary(t_arith_ctx *ctx)
+{
+	t_arith_token	*tok;
+	long			val;
+
+	tok = &ctx->lexer->current;
+	if (tok->type == ARITH_NUM)
 	{
-		arith_lexer_advance(p->lexer);
-		return (tok.num_val);
-	}
-	else if (tok.type == ATOK_VAR)
-	{
-		arith_lexer_advance(p->lexer);
-		return (get_var_value(p, tok.var_name, tok.var_len));
-	}
-	else if (tok.type == ATOK_LPAREN)
-	{
-		arith_lexer_advance(p->lexer);
-		val = arith_parse_expr(p);
-		expect(p, ATOK_RPAREN);
+		val = tok->value;
+		arith_lexer_next(ctx->lexer);
 		return (val);
 	}
-	p->error = true;
+	if (tok->type == ARITH_LPAREN)
+	{
+		arith_lexer_next(ctx->lexer);
+		val = parse_ternary(ctx);
+		/* Handle comma inside parentheses */
+		while (ctx->lexer->current.type == ARITH_COMMA)
+		{
+			arith_lexer_next(ctx->lexer);
+			val = parse_ternary(ctx);
+		}
+		if (ctx->lexer->current.type == ARITH_RPAREN)
+			arith_lexer_next(ctx->lexer);
+		return (val);
+	}
+	if (tok->type == ARITH_VAR)
+	{
+		char *name = ft_strdup(tok->name);
+		arith_lexer_next(ctx->lexer);
+		/* Check for assignment */
+		if (ctx->lexer->current.type == ARITH_ASSIGN)
+		{
+			arith_lexer_next(ctx->lexer);
+			val = parse_ternary(ctx);
+			set_var(ctx, name, val);
+			free(name);
+			return (val);
+		}
+		val = get_var(ctx, name);
+		free(name);
+		return (val);
+	}
+	ctx->error = 1;
 	return (0);
 }
 
-/* Unary: ('+' | '-' | '!' | '~') unary | primary */
-long long	arith_parse_unary(t_arith_parser *p)
+static long	parse_unary(t_arith_ctx *ctx)
 {
-	t_arith_token	tok;
+	t_arith_token	*tok;
+	long			val;
+	char			*name;
 
-	if (p->error)
+	tok = &ctx->lexer->current;
+	if (tok->type == ARITH_PLUS)
+		return (arith_lexer_next(ctx->lexer), parse_unary(ctx));
+	if (tok->type == ARITH_MINUS)
+		return (arith_lexer_next(ctx->lexer), -parse_unary(ctx));
+	if (tok->type == ARITH_NOT)
+		return (arith_lexer_next(ctx->lexer), !parse_unary(ctx));
+	if (tok->type == ARITH_BNOT)
+		return (arith_lexer_next(ctx->lexer), ~parse_unary(ctx));
+	if (tok->type == ARITH_INC)
+	{
+		arith_lexer_next(ctx->lexer);
+		if (ctx->lexer->current.type == ARITH_VAR)
+		{
+			name = ft_strdup(ctx->lexer->current.name);
+			val = get_var(ctx, name) + 1;
+			set_var(ctx, name, val);
+			arith_lexer_next(ctx->lexer);
+			free(name);
+			return (val);
+		}
+		ctx->error = 1;
 		return (0);
-	tok = arith_lexer_peek(p->lexer);
-	if (tok.type == ATOK_PLUS)
-	{
-		arith_lexer_advance(p->lexer);
-		return (arith_parse_unary(p));
 	}
-	else if (tok.type == ATOK_MINUS)
+	if (tok->type == ARITH_DEC)
 	{
-		arith_lexer_advance(p->lexer);
-		return (-arith_parse_unary(p));
+		arith_lexer_next(ctx->lexer);
+		if (ctx->lexer->current.type == ARITH_VAR)
+		{
+			name = ft_strdup(ctx->lexer->current.name);
+			val = get_var(ctx, name) - 1;
+			set_var(ctx, name, val);
+			arith_lexer_next(ctx->lexer);
+			free(name);
+			return (val);
+		}
+		ctx->error = 1;
+		return (0);
 	}
-	else if (tok.type == ATOK_NOT)
-	{
-		arith_lexer_advance(p->lexer);
-		return (!arith_parse_unary(p));
-	}
-	else if (tok.type == ATOK_BNOT)
-	{
-		arith_lexer_advance(p->lexer);
-		return (~arith_parse_unary(p));
-	}
-	return (arith_parse_primary(p));
+	return (parse_primary(ctx));
 }
 
-/* Exponent: unary ('**' exponent)? - right associative */
-long long	arith_parse_exponent(t_arith_parser *p)
+static long	parse_postfix(t_arith_ctx *ctx)
 {
-	long long		base;
-	long long		exp;
-	long long		result;
-	t_arith_token	tok;
+	long	val;
+	long	old_val;
+	char	*name;
 
-	base = arith_parse_unary(p);
-	tok = arith_lexer_peek(p->lexer);
-	if (tok.type == ATOK_POW)
+	if (ctx->lexer->current.type == ARITH_VAR)
 	{
-		arith_lexer_advance(p->lexer);
-		exp = arith_parse_exponent(p); /* right associative: recurse */
-		if (p->error)
+		name = ft_strdup(ctx->lexer->current.name);
+		arith_lexer_next(ctx->lexer);
+		if (ctx->lexer->current.type == ARITH_INC)
+		{
+			old_val = get_var(ctx, name);
+			set_var(ctx, name, old_val + 1);
+			arith_lexer_next(ctx->lexer);
+			free(name);
+			return (old_val);
+		}
+		if (ctx->lexer->current.type == ARITH_DEC)
+		{
+			old_val = get_var(ctx, name);
+			set_var(ctx, name, old_val - 1);
+			arith_lexer_next(ctx->lexer);
+			free(name);
+			return (old_val);
+		}
+		if (ctx->lexer->current.type == ARITH_ASSIGN)
+		{
+			arith_lexer_next(ctx->lexer);
+			val = parse_ternary(ctx);
+			set_var(ctx, name, val);
+			free(name);
+			return (val);
+		}
+		val = get_var(ctx, name);
+		free(name);
+		return (val);
+	}
+	return (parse_unary(ctx));
+}
+
+static long	ft_pow(long base, long exp)
+{
+	long	result;
+
+	result = 1;
+	while (exp > 0)
+	{
+		result *= base;
+		exp--;
+	}
+	return (result);
+}
+
+static long	parse_power(t_arith_ctx *ctx)
+{
+	long	left;
+
+	left = parse_postfix(ctx);
+	if (ctx->lexer->current.type == ARITH_POW)
+	{
+		arith_lexer_next(ctx->lexer);
+		return (ft_pow(left, parse_power(ctx)));
+	}
+	return (left);
+}
+
+static long	parse_mul(t_arith_ctx *ctx)
+{
+	long		left;
+	long		right;
+	t_arith_tok	op;
+
+	left = parse_power(ctx);
+	while (ctx->lexer->current.type == ARITH_MUL ||
+		ctx->lexer->current.type == ARITH_DIV ||
+		ctx->lexer->current.type == ARITH_MOD)
+	{
+		op = ctx->lexer->current.type;
+		arith_lexer_next(ctx->lexer);
+		right = parse_power(ctx);
+		if (op == ARITH_MUL)
+			left *= right;
+		else if (right == 0)
+		{
+			ft_eprintf("%s: division by 0\n", ctx->state->context);
+			ctx->error = 1;
 			return (0);
-		/* Calculate base ** exp */
-		if (exp < 0)
-			return (0); /* negative exponents not supported in integer arith */
-		result = 1;
-		while (exp > 0)
-		{
-			result *= base;
-			exp--;
 		}
-		return (result);
-	}
-	return (base);
-}
-
-/* Multiplicative: exponent (('*' | '/' | '%') exponent)* */
-long long	arith_parse_multiplicative(t_arith_parser *p)
-{
-	long long		left;
-	long long		right;
-	t_arith_token	tok;
-
-	left = arith_parse_exponent(p);  /* Changed from arith_parse_unary */
-	while (!p->error)
-	{
-		tok = arith_lexer_peek(p->lexer);
-		if (tok.type == ATOK_MUL)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left * arith_parse_exponent(p);  /* Changed */
-		}
-		else if (tok.type == ATOK_DIV)
-		{
-			arith_lexer_advance(p->lexer);
-			right = arith_parse_exponent(p);  /* Changed */
-			if (right == 0)
-				{ p->error = true; return (0); }
-			left = left / right;
-		}
-		else if (tok.type == ATOK_MOD)
-		{
-			arith_lexer_advance(p->lexer);
-			right = arith_parse_exponent(p);  /* Changed */
-			if (right == 0)
-				{ p->error = true; return (0); }
-			left = left % right;
-		}
+		else if (op == ARITH_DIV)
+			left /= right;
 		else
-			break;
+			left %= right;
 	}
 	return (left);
 }
 
-/* Additive: multiplicative (('+' | '-') multiplicative)* */
-long long	arith_parse_additive(t_arith_parser *p)
+static long	parse_add(t_arith_ctx *ctx)
 {
-	long long		left;
-	t_arith_token	tok;
+	long		left;
+	t_arith_tok	op;
 
-	left = arith_parse_multiplicative(p);
-	while (!p->error)
+	left = parse_mul(ctx);
+	while (ctx->lexer->current.type == ARITH_PLUS ||
+		ctx->lexer->current.type == ARITH_MINUS)
 	{
-		tok = arith_lexer_peek(p->lexer);
-		if (tok.type == ATOK_PLUS)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left + arith_parse_multiplicative(p);
-		}
-		else if (tok.type == ATOK_MINUS)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left - arith_parse_multiplicative(p);
-		}
+		op = ctx->lexer->current.type;
+		arith_lexer_next(ctx->lexer);
+		if (op == ARITH_PLUS)
+			left += parse_mul(ctx);
 		else
-			break;
+			left -= parse_mul(ctx);
 	}
 	return (left);
 }
 
-/* Shift: additive (('<<' | '>>') additive)* */
-long long	arith_parse_shift(t_arith_parser *p)
+static long	parse_shift(t_arith_ctx *ctx)
 {
-	long long		left;
-	t_arith_token	tok;
+	long		left;
+	t_arith_tok	op;
 
-	left = arith_parse_additive(p);
-	while (!p->error)
+	left = parse_add(ctx);
+	while (ctx->lexer->current.type == ARITH_SHL ||
+		ctx->lexer->current.type == ARITH_SHR)
 	{
-		tok = arith_lexer_peek(p->lexer);
-		if (tok.type == ATOK_LSHIFT)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left << arith_parse_additive(p);
-		}
-		else if (tok.type == ATOK_RSHIFT)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left >> arith_parse_additive(p);
-		}
+		op = ctx->lexer->current.type;
+		arith_lexer_next(ctx->lexer);
+		if (op == ARITH_SHL)
+			left <<= parse_add(ctx);
 		else
-			break;
+			left >>= parse_add(ctx);
 	}
 	return (left);
 }
 
-/* Relational: shift (('<' | '<=' | '>' | '>=') shift)* */
-long long	arith_parse_relational(t_arith_parser *p)
+static long	parse_relational(t_arith_ctx *ctx)
 {
-	long long		left;
-	t_arith_token	tok;
+	long		left;
+	t_arith_tok	op;
 
-	left = arith_parse_shift(p);
-	while (!p->error)
+	left = parse_shift(ctx);
+	while (ctx->lexer->current.type == ARITH_LT ||
+		ctx->lexer->current.type == ARITH_GT ||
+		ctx->lexer->current.type == ARITH_LE ||
+		ctx->lexer->current.type == ARITH_GE)
 	{
-		tok = arith_lexer_peek(p->lexer);
-		if (tok.type == ATOK_LT)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left < arith_parse_shift(p);
-		}
-		else if (tok.type == ATOK_LE)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left <= arith_parse_shift(p);
-		}
-		else if (tok.type == ATOK_GT)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left > arith_parse_shift(p);
-		}
-		else if (tok.type == ATOK_GE)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left >= arith_parse_shift(p);
-		}
+		op = ctx->lexer->current.type;
+		arith_lexer_next(ctx->lexer);
+		if (op == ARITH_LT)
+			left = left < parse_shift(ctx);
+		else if (op == ARITH_GT)
+			left = left > parse_shift(ctx);
+		else if (op == ARITH_LE)
+			left = left <= parse_shift(ctx);
 		else
-			break;
+			left = left >= parse_shift(ctx);
 	}
 	return (left);
 }
 
-/* Equality: relational (('==' | '!=') relational)* */
-long long	arith_parse_equality(t_arith_parser *p)
+static long	parse_equality(t_arith_ctx *ctx)
 {
-	long long		left;
-	t_arith_token	tok;
+	long		left;
+	t_arith_tok	op;
 
-	left = arith_parse_relational(p);
-	while (!p->error)
+	left = parse_relational(ctx);
+	while (ctx->lexer->current.type == ARITH_EQ ||
+		ctx->lexer->current.type == ARITH_NE)
 	{
-		tok = arith_lexer_peek(p->lexer);
-		if (tok.type == ATOK_EQ)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left == arith_parse_relational(p);
-		}
-		else if (tok.type == ATOK_NE)
-		{
-			arith_lexer_advance(p->lexer);
-			left = left != arith_parse_relational(p);
-		}
+		op = ctx->lexer->current.type;
+		arith_lexer_next(ctx->lexer);
+		if (op == ARITH_EQ)
+			left = left == parse_relational(ctx);
 		else
-			break;
+			left = left != parse_relational(ctx);
 	}
 	return (left);
+}
+
+static long	parse_band(t_arith_ctx *ctx)
+{
+	long	left;
+
+	left = parse_equality(ctx);
+	while (ctx->lexer->current.type == ARITH_BAND)
+	{
+		arith_lexer_next(ctx->lexer);
+		left &= parse_equality(ctx);
+	}
+	return (left);
+}
+
+static long	parse_bxor(t_arith_ctx *ctx)
+{
+	long	left;
+
+	left = parse_band(ctx);
+	while (ctx->lexer->current.type == ARITH_BXOR)
+	{
+		arith_lexer_next(ctx->lexer);
+		left ^= parse_band(ctx);
+	}
+	return (left);
+}
+
+static long	parse_bor(t_arith_ctx *ctx)
+{
+	long	left;
+
+	left = parse_bxor(ctx);
+	while (ctx->lexer->current.type == ARITH_BOR)
+	{
+		arith_lexer_next(ctx->lexer);
+		left |= parse_bxor(ctx);
+	}
+	return (left);
+}
+
+static long	parse_and(t_arith_ctx *ctx)
+{
+	long	left;
+
+	left = parse_bor(ctx);
+	while (ctx->lexer->current.type == ARITH_AND)
+	{
+		arith_lexer_next(ctx->lexer);
+		left = left && parse_bor(ctx);
+	}
+	return (left);
+}
+
+static long	parse_or(t_arith_ctx *ctx)
+{
+	long	left;
+
+	left = parse_and(ctx);
+	while (ctx->lexer->current.type == ARITH_OR)
+	{
+		arith_lexer_next(ctx->lexer);
+		left = left || parse_and(ctx);
+	}
+	return (left);
+}
+
+static long	parse_ternary(t_arith_ctx *ctx)
+{
+	long	cond;
+	long	then_val;
+	long	else_val;
+
+	cond = parse_or(ctx);
+	if (ctx->lexer->current.type == ARITH_QUESTION)
+	{
+		arith_lexer_next(ctx->lexer);
+		then_val = parse_ternary(ctx);
+		if (ctx->lexer->current.type == ARITH_COLON)
+			arith_lexer_next(ctx->lexer);
+		else
+			ctx->error = 1;
+		else_val = parse_ternary(ctx);
+		return (cond ? then_val : else_val);
+	}
+	return (cond);
+}
+
+static long	parse_comma(t_arith_ctx *ctx)
+{
+	long	left;
+
+	left = parse_ternary(ctx);
+	while (ctx->lexer->current.type == ARITH_COMMA)
+	{
+		arith_lexer_next(ctx->lexer);
+		left = parse_ternary(ctx);
+	}
+	return (left);
+}
+
+long	arith_eval_expr(t_arith_ctx *ctx)
+{
+	return (parse_comma(ctx));
 }

@@ -1,0 +1,194 @@
+# Basic subshells
+(echo hello)
+(echo hello; echo world)
+(true)
+(false)
+(exit 42)
+
+# Subshells with pipes
+(echo hello | grep hello)
+(echo hello | grep hello) && echo "match"
+(echo hello | grep bye) || echo "no match"
+
+# Nested subshells
+((echo hello))
+(((echo hello)))
+((echo hello) && (echo world))
+((echo hello) || (echo world))
+
+# Subshells with redirects
+(echo hello >./outfiles/test01)
+(cat <./test_files/infile)
+(cat <./test_files/infile | grep hi)
+(echo hello >./outfiles/test01 && cat ./outfiles/test01)
+
+# Subshells with variables
+(export TEST=hello; echo $TEST)
+(TEST=hello; echo $TEST)
+(unset HOME; echo $HOME)
+(export VAR=123; echo $VAR) && echo $VAR
+
+# Subshells with cd
+(cd ./test_files; ls)
+(cd ./test_files; pwd)
+(cd ./test_files) && pwd
+
+# Subshells with logical operators
+(true && true)
+(false || true)
+(true && false || echo "failed")
+(false && echo "skip" || echo "run")
+
+# Multiple subshells
+(echo a) && (echo b)
+(echo a) || (echo b)
+(echo a) | (cat)
+(echo a; echo b) && (echo c; echo d)
+
+# Subshells with functions/commands
+(ls | wc -l)
+(env | grep USER)
+
+# Empty subshells
+()
+( )
+(;)
+(;;)
+
+# Subshells in pipes
+echo hello | (grep hello)
+echo hello | (grep hello && echo "found")
+echo hello | (grep bye || echo "not found")
+ls | (wc -l)
+
+# Subshells with &&
+(true) && echo "yes"
+(false) && echo "yes" || echo "no"
+(echo a) && (echo b)
+(echo a && echo b) && echo "both"
+
+# Subshells with ||
+(true) || echo "skip"
+(false) || echo "run"
+(echo a) || (echo b)
+(false || echo a) || echo b
+
+# Subshells with both && and ||
+(true && false) || echo "failed"
+(false && true) || echo "or runs"
+(true || false) && echo "and runs"
+(false || true) && echo "and runs"
+
+# Subshells with semicolon
+(echo a; echo b)
+(echo a; echo b; echo c)
+(ls; pwd)
+(export X=1; echo $X)
+
+# Subshells with variable assignment
+(A=1 echo $A)
+(A=1; echo $A)
+(export A=1; echo $A)
+(A=1 B=2; echo $A $B)
+
+# Command groups with braces {}
+{ echo hello; }
+{ echo hello; echo world; }
+{ true; }
+{ false; }
+
+# Command groups with pipes
+{ echo hello | grep hello; }
+{ cat <./test_files/infile | grep hi; }
+{ echo hello | grep hello && echo "match"; }
+
+# Nested command groups
+{ { echo hello; }; }
+{ { echo hello; } && { echo world; }; }
+{ { echo hello; } || { echo world; }; }
+
+# Command groups with redirects
+{ echo hello >./outfiles/test02; }
+{ cat <./test_files/infile; }
+{ cat <./test_files/infile >./outfiles/test02; }
+
+# Command groups with variables
+{ export TEST=hello; echo $TEST; }
+{ TEST=hello; echo $TEST; }
+{ unset HOME; echo $HOME; }
+
+# Command groups with cd
+{ cd ./test_files; ls; }
+{ cd ./test_files; pwd; }
+{ cd ./test_files; } && pwd
+
+# Command groups with logical operators
+{ true && true; }
+{ false || true; }
+{ true && false || echo "failed"; }
+{ false && echo "skip" || echo "run"; }
+
+# Multiple command groups
+{ echo a; } && { echo b; }
+{ echo a; } || { echo b; }
+{ echo a; } | { cat; }
+{ echo a; echo b; } && { echo c; echo d; }
+
+# Command groups vs subshells differences
+(export X=1; echo $X) && echo $X
+{ export X=1; echo $X; } && echo $X
+(cd ./test_files) && pwd
+{ cd ./test_files; } && pwd
+
+# Mixed subshells and command groups
+(echo a) && { echo b; }
+{ echo a; } && (echo b)
+(echo a) || { echo b; }
+{ echo a; } || (echo b)
+
+# Edge cases with empty lines
+(
+echo hello
+)
+{
+echo hello
+}
+
+# Subshells with exit codes
+(exit 0)
+(exit 1)
+(exit 127)
+(exit 255)
+
+# Command groups with exit codes
+{ exit 0; }
+{ exit 1; }
+{ exit 127; }
+{ exit 255; }
+
+# Complex nesting
+((echo a) && (echo b)) || (echo c)
+{ (echo a) && (echo b); } || { echo c; }
+((echo a; echo b) || (echo c; echo d))
+{ { echo a; echo b; } || { echo c; echo d; }; }
+
+# Subshells/groups in command substitution
+echo $(echo hello)
+echo $(echo hello | grep hello)
+echo $({ echo hello; })
+
+# Redirects inside subshells/groups
+(echo a; echo b) >./outfiles/test03
+{ echo a; echo b; } >./outfiles/test04
+(echo a >./outfiles/test05; echo b >./outfiles/test06)
+
+# Pipes with multiple subshells/groups
+(echo a) | (cat) | (grep a)
+{ echo a; } | { cat; } | { grep a; }
+(echo a; echo b) | { grep a; }
+
+# Variable scope in subshells vs groups
+A=1 && (echo $A) && echo $A
+A=1 && { echo $A; } && echo $A
+(A=1; echo $A) && echo $A
+{ A=1; echo $A; } && echo $A

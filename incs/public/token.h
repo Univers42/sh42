@@ -24,7 +24,9 @@ typedef enum e_tt
 	TT_NEWLINE,
 	TT_END,
 	TT_AMPERSAND,  /* single & for background execution */
-	TT_ARITH_START, /* (( for arithmetic expression - not supported */
+	TT_ARITH_CMD,      /* (( */
+	TT_ARITH_CMD_END,  /* )) */
+	TT_QWORD           /* quoted word (for compatibility) */
 } t_tt;
 
 /* compact representation of original full token for AST bookkeeping */

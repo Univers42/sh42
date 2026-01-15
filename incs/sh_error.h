@@ -13,16 +13,6 @@
 #ifndef SH_ERROR_H
 # define SH_ERROR_H
 
-# include "ast.h"
-# include "lexer.h"
-# include "parser.h"
-
-void	err_cmd_not_found(t_shell *state, char *cmd);
-void	err_no_path_var(t_shell *state, char *cmd);
-void	err_1_errno(t_shell *state, char *p1);
-void	err_2(t_shell *state, char *p1, char *p2);
-t_ast_node	unexpected(t_shell *state, t_parser *parser,
-	t_ast_node ret, t_deque_tt *tokens);
-
+/* Error codes and helpers - forward declarations only, no lexer.h include */
 
 #endif

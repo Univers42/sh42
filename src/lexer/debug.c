@@ -83,7 +83,8 @@ static const char **get_tt_names(void)
         names[TT_ENVVAR] = "TT_ENVVAR";
         names[TT_DQENVVAR] = "TT_DQENVVAR";
         names[TT_AMPERSAND] = "TT_AMPERSAND";
-        names[TT_ARITH_START] = "TT_ARITH_START";
+        names[TT_ARITH_CMD] = "TT_ARITH_CMD";
+        names[TT_ARITH_CMD_END] = "TT_ARITH_CMD_END";
         inited = 1;
     }
     return names;

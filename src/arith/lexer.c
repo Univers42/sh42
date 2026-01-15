@@ -12,35 +12,23 @@
 
 #include "arith.h"
 #include "libft.h"
+#include <stdlib.h>
 
 static void	skip_whitespace(t_arith_lexer *lex)
 {
-	while (lex->pos < lex->len && 
-		   (lex->input[lex->pos] == ' ' || lex->input[lex->pos] == '\t' ||
-			lex->input[lex->pos] == '\n'))
+	while (lex->pos < lex->len && ft_isspace(lex->input[lex->pos]))
 		lex->pos++;
 }
 
-static bool	is_var_start(char c)
+static int	lex_number(t_arith_lexer *lex)
 {
-	return (ft_isalpha(c) || c == '_');
-}
-
-static bool	is_var_char(char c)
-{
-	return (ft_isalnum(c) || c == '_');
-}
-
-static void	lex_number(t_arith_lexer *lex)
-{
-	long long	val;
-	int			base;
-	int			start;
+	long	val;
+	int		base;
+	int		digit;
+	char	c;
 
 	val = 0;
 	base = 10;
-	start = lex->pos;
-	/* Check for hex (0x) or octal (0) */
 	if (lex->input[lex->pos] == '0' && lex->pos + 1 < lex->len)
 	{
 		if (lex->input[lex->pos + 1] == 'x' || lex->input[lex->pos + 1] == 'X')
@@ -56,170 +44,132 @@ static void	lex_number(t_arith_lexer *lex)
 	}
 	while (lex->pos < lex->len)
 	{
-		char c = lex->input[lex->pos];
-		int digit = -1;
-		if (c >= '0' && c <= '9')
+		digit = -1;
+		c = lex->input[lex->pos];
+		if (ft_isdigit(c))
 			digit = c - '0';
 		else if (base == 16 && c >= 'a' && c <= 'f')
-			digit = 10 + c - 'a';
+			digit = c - 'a' + 10;
 		else if (base == 16 && c >= 'A' && c <= 'F')
-			digit = 10 + c - 'A';
+			digit = c - 'A' + 10;
 		if (digit < 0 || digit >= base)
-			break;
+			break ;
 		val = val * base + digit;
 		lex->pos++;
 	}
-	lex->current.type = ATOK_NUM;
-	lex->current.num_val = val;
-	lex->current.start = lex->input + start;
-	lex->current.len = lex->pos - start;
+	lex->current.type = ARITH_NUM;
+	lex->current.value = val;
+	return (0);
 }
 
-static void	lex_variable(t_arith_lexer *lex)
+static int	lex_ident(t_arith_lexer *lex)
 {
 	int	start;
 
 	start = lex->pos;
-	while (lex->pos < lex->len && is_var_char(lex->input[lex->pos]))
+	while (lex->pos < lex->len &&
+		(ft_isalnum(lex->input[lex->pos]) || lex->input[lex->pos] == '_'))
 		lex->pos++;
-	lex->current.type = ATOK_VAR;
-	lex->current.var_name = (char *)(lex->input + start);
-	lex->current.var_len = lex->pos - start;
-	lex->current.start = lex->input + start;
-	lex->current.len = lex->pos - start;
+	lex->current.type = ARITH_VAR;
+	lex->current.name = ft_strndup(lex->input + start, lex->pos - start);
+	return (0);
 }
 
-static void	lex_two_char_op(t_arith_lexer *lex, char c1, char c2,
-							t_arith_tok single, t_arith_tok dbl)
+static int	lex_two_char_op(t_arith_lexer *lex, char c, char c2)
 {
-	if (lex->pos + 1 < lex->len && lex->input[lex->pos + 1] == c2)
-	{
-		lex->current.type = dbl;
-		lex->current.start = lex->input + lex->pos;
-		lex->current.len = 2;
-		lex->pos += 2;
-	}
-	else
-	{
-		lex->current.type = single;
-		lex->current.start = lex->input + lex->pos;
-		lex->current.len = 1;
-		lex->pos++;
-	}
-	(void)c1;
+	if (c == '&' && c2 == '&')
+		{ lex->current.type = ARITH_AND; lex->pos += 2; return (1); }
+	if (c == '|' && c2 == '|')
+		{ lex->current.type = ARITH_OR; lex->pos += 2; return (1); }
+	if (c == '=' && c2 == '=')
+		{ lex->current.type = ARITH_EQ; lex->pos += 2; return (1); }
+	if (c == '!' && c2 == '=')
+		{ lex->current.type = ARITH_NE; lex->pos += 2; return (1); }
+	if (c == '<' && c2 == '=')
+		{ lex->current.type = ARITH_LE; lex->pos += 2; return (1); }
+	if (c == '>' && c2 == '=')
+		{ lex->current.type = ARITH_GE; lex->pos += 2; return (1); }
+	if (c == '<' && c2 == '<')
+		{ lex->current.type = ARITH_SHL; lex->pos += 2; return (1); }
+	if (c == '>' && c2 == '>')
+		{ lex->current.type = ARITH_SHR; lex->pos += 2; return (1); }
+	if (c == '+' && c2 == '+')
+		{ lex->current.type = ARITH_INC; lex->pos += 2; return (1); }
+	if (c == '-' && c2 == '-')
+		{ lex->current.type = ARITH_DEC; lex->pos += 2; return (1); }
+	if (c == '*' && c2 == '*')
+		{ lex->current.type = ARITH_POW; lex->pos += 2; return (1); }
+	return (0);
 }
 
-static void	lex_operator(t_arith_lexer *lex)
+static int	lex_one_char_op(t_arith_lexer *lex, char c)
+{
+	if (c == '+') { lex->current.type = ARITH_PLUS; lex->pos++; return (1); }
+	if (c == '-') { lex->current.type = ARITH_MINUS; lex->pos++; return (1); }
+	if (c == '*') { lex->current.type = ARITH_MUL; lex->pos++; return (1); }
+	if (c == '/') { lex->current.type = ARITH_DIV; lex->pos++; return (1); }
+	if (c == '%') { lex->current.type = ARITH_MOD; lex->pos++; return (1); }
+	if (c == '<') { lex->current.type = ARITH_LT; lex->pos++; return (1); }
+	if (c == '>') { lex->current.type = ARITH_GT; lex->pos++; return (1); }
+	if (c == '=') { lex->current.type = ARITH_ASSIGN; lex->pos++; return (1); }
+	if (c == '!') { lex->current.type = ARITH_NOT; lex->pos++; return (1); }
+	if (c == '~') { lex->current.type = ARITH_BNOT; lex->pos++; return (1); }
+	if (c == '&') { lex->current.type = ARITH_BAND; lex->pos++; return (1); }
+	if (c == '|') { lex->current.type = ARITH_BOR; lex->pos++; return (1); }
+	if (c == '^') { lex->current.type = ARITH_BXOR; lex->pos++; return (1); }
+	if (c == '(') { lex->current.type = ARITH_LPAREN; lex->pos++; return (1); }
+	if (c == ')') { lex->current.type = ARITH_RPAREN; lex->pos++; return (1); }
+	if (c == '?') { lex->current.type = ARITH_QUESTION; lex->pos++; return (1); }
+	if (c == ':') { lex->current.type = ARITH_COLON; lex->pos++; return (1); }
+	if (c == ',') { lex->current.type = ARITH_COMMA; lex->pos++; return (1); }
+	return (0);
+}
+
+static int	lex_operator(t_arith_lexer *lex)
 {
 	char	c;
+	char	c2;
 
 	c = lex->input[lex->pos];
-	lex->current.start = lex->input + lex->pos;
-	lex->current.len = 1;
-	if (c == '+')
-		{ lex->current.type = ATOK_PLUS; lex->pos++; }
-	else if (c == '-')
-		{ lex->current.type = ATOK_MINUS; lex->pos++; }
-	else if (c == '*')
-	{
-		/* Check for ** (exponentiation) */
-		if (lex->pos + 1 < lex->len && lex->input[lex->pos + 1] == '*')
-		{
-			lex->current.type = ATOK_POW;
-			lex->current.len = 2;
-			lex->pos += 2;
-		}
-		else
-		{
-			lex->current.type = ATOK_MUL;
-			lex->pos++;
-		}
-	}
-	else if (c == '/')
-		{ lex->current.type = ATOK_DIV; lex->pos++; }
-	else if (c == '%')
-		{ lex->current.type = ATOK_MOD; lex->pos++; }
-	else if (c == '(')
-		{ lex->current.type = ATOK_LPAREN; lex->pos++; }
-	else if (c == ')')
-		{ lex->current.type = ATOK_RPAREN; lex->pos++; }
-	else if (c == '?')
-		{ lex->current.type = ATOK_TERNQ; lex->pos++; }
-	else if (c == ':')
-		{ lex->current.type = ATOK_TERNC; lex->pos++; }
-	else if (c == ',')
-		{ lex->current.type = ATOK_COMMA; lex->pos++; }
-	else if (c == '~')
-		{ lex->current.type = ATOK_BNOT; lex->pos++; }
-	else if (c == '^')
-		{ lex->current.type = ATOK_BXOR; lex->pos++; }
-	else if (c == '=')
-		lex_two_char_op(lex, '=', '=', ATOK_ASSIGN, ATOK_EQ);
-	else if (c == '!')
-		lex_two_char_op(lex, '!', '=', ATOK_NOT, ATOK_NE);
-	else if (c == '<')
-	{
-		if (lex->pos + 1 < lex->len && lex->input[lex->pos + 1] == '=')
-			{ lex->current.type = ATOK_LE; lex->current.len = 2; lex->pos += 2; }
-		else if (lex->pos + 1 < lex->len && lex->input[lex->pos + 1] == '<')
-			{ lex->current.type = ATOK_LSHIFT; lex->current.len = 2; lex->pos += 2; }
-		else
-			{ lex->current.type = ATOK_LT; lex->pos++; }
-	}
-	else if (c == '>')
-	{
-		if (lex->pos + 1 < lex->len && lex->input[lex->pos + 1] == '=')
-			{ lex->current.type = ATOK_GE; lex->current.len = 2; lex->pos += 2; }
-		else if (lex->pos + 1 < lex->len && lex->input[lex->pos + 1] == '>')
-			{ lex->current.type = ATOK_RSHIFT; lex->current.len = 2; lex->pos += 2; }
-		else
-			{ lex->current.type = ATOK_GT; lex->pos++; }
-	}
-	else if (c == '&')
-		lex_two_char_op(lex, '&', '&', ATOK_BAND, ATOK_AND);
-	else if (c == '|')
-		lex_two_char_op(lex, '|', '|', ATOK_BOR, ATOK_OR);
-	else
-	{
-		lex->current.type = ATOK_ERROR;
-		lex->error = true;
-		lex->pos++;
-	}
+	c2 = (lex->pos + 1 < lex->len) ? lex->input[lex->pos + 1] : 0;
+	if (lex_two_char_op(lex, c, c2))
+		return (0);
+	if (lex_one_char_op(lex, c))
+		return (0);
+	return (-1);
 }
 
 void	arith_lexer_init(t_arith_lexer *lex, const char *input, int len)
 {
 	lex->input = input;
-	lex->pos = 0;
 	lex->len = len;
-	lex->error = false;
-	lex->error_msg = NULL;
-	lex->current.type = ATOK_EOF;
-	arith_lexer_advance(lex);
+	lex->pos = 0;
+	lex->error = 0;
+	lex->current.type = ARITH_EOF;
+	lex->current.name = NULL;
 }
 
-void	arith_lexer_advance(t_arith_lexer *lex)
+int	arith_lexer_next(t_arith_lexer *lex)
 {
-	char	c;
-
+	arith_lexer_free_token(&lex->current);
 	skip_whitespace(lex);
 	if (lex->pos >= lex->len)
 	{
-		lex->current.type = ATOK_EOF;
-		lex->current.start = lex->input + lex->pos;
-		lex->current.len = 0;
-		return;
+		lex->current.type = ARITH_EOF;
+		return (0);
 	}
-	c = lex->input[lex->pos];
-	if (ft_isdigit(c))
-		lex_number(lex);
-	else if (is_var_start(c))
-		lex_variable(lex);
-	else
-		lex_operator(lex);
+	if (ft_isdigit(lex->input[lex->pos]))
+		return (lex_number(lex));
+	if (ft_isalpha(lex->input[lex->pos]) || lex->input[lex->pos] == '_')
+		return (lex_ident(lex));
+	return (lex_operator(lex));
 }
 
-t_arith_token	arith_lexer_peek(t_arith_lexer *lex)
+void	arith_lexer_free_token(t_arith_token *tok)
 {
-	return (lex->current);
+	if (tok->name)
+	{
+		free(tok->name);
+		tok->name = NULL;
+	}
 }

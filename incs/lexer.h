@@ -13,16 +13,11 @@
 #ifndef LEXER_H
 # define LEXER_H
 
-struct s_shell; // <-- add this forward declaration
-
 # include "libft.h"
-# include "token.h"
-
-typedef struct s_deque_tt
-{
-	t_deque	deqtok;	// void *buff ==> t_token 
-	char		looking_for;
-}	t_deque_tt;
+# include <stdbool.h>
+# include "public/token.h"
+# define LEXER_SQUOTE_PROMPT "squote> "
+# define LEXER_DQUOTE_PROMPT "dquote> "
 
 typedef struct s_op_map
 {
@@ -30,17 +25,19 @@ typedef struct s_op_map
 	t_tt	t;
 }	t_op_map;
 
+typedef struct s_deque_tt
+{
+	t_deque	deqtok;
+	char	looking_for;
+}	t_deque_tt;
 
-
-char		*tokenizer(char *str, t_deque_tt *ret);
-int			advance_dquoted(char **str);
-int			advance_squoted(char **str);
-void		free_all_state(struct s_shell *state);
-void	print_tokens(t_deque_tt *tokens);
-char	*tt_to_str(t_tt tt);
-char	*tt_to_str_p2(t_tt tt);
-bool	is_special_char(char c);
+/* Function prototypes */
+char	*tokenizer(char *str, t_deque_tt *ret);
+int		advance_dquoted(char **str);
+int		advance_squoted(char **str);
 bool	is_space(char c);
-
+bool	is_special_char(char c);
+char	*tt_to_str(t_tt tt);
+void	print_tokens(t_deque_tt *tokens);
 
 #endif

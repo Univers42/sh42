@@ -282,6 +282,8 @@ char *node_name(t_ast_t tn)
 		return ("AST_COMMAND");
 	if (tn == AST_ASSIGNMENT_WORD)
 		return ("AST_ASSIGNMENT_WORD");
+	if (tn == AST_ARITH_CMD)
+		return ("AST_ARITH_CMD");
 	ft_assert("Unreachable" == 0);
 	return (0);
 }

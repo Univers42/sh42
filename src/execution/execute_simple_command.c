@@ -291,6 +291,17 @@ t_exe_res execute_simple_command(t_shell *state, t_executable_node *exe)
 #endif
 		free_executable_cmd(cmd);
 		free_executable_node(exe);
+		/* Check if an arithmetic error already set the status to non-zero */
+		if (state->last_cmd_status_res.status != 0 && !g_should_unwind)
+		{
+			return (state->last_cmd_status_res);
+		}
+		/* Check for arithmetic error marker */
+		if (g_should_unwind == 0xDEAD)
+		{
+			g_should_unwind = 0;
+			return (state->last_cmd_status_res);
+		}
 		if (g_should_unwind)
 			return (res_status(CANCELED));
 		return (res_status(AMBIGUOUS_REDIRECT));

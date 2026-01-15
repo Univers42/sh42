@@ -124,6 +124,9 @@ int	expand_simple_cmd_word(t_shell *state,
 	if (!exp->found_first && is_export(*exp->curr))
 		exp->export = true;
 	expand_word(state, exp->curr, &ret->argv, false);
+	/* Check for arithmetic error */
+	if (g_should_unwind == 0xDEAD)
+		return (1);
 	if (g_should_unwind)
 		return (1);
 	exp->found_first = true;
@@ -183,6 +186,16 @@ int	expand_simple_command(t_shell *state, t_ast_node *node,
 {
 	t_expander_simple_cmd	exp;
 
+	/* Check if arithmetic error already set */
+	if (g_should_unwind == 0xDEAD)
+		return (1);
+	/* Also check if status was set to non-zero (arithmetic error) */
+	if (state->last_cmd_status_res.status != 0)
+	{
+		/* Check if this is due to a recent error, not from a previous command */
+		/* This is a heuristic - we rely on the caller to reset status */
+	}
+
 	if (node == NULL || node->children.len == 0 || node->children.ctx == NULL)
 		return (1);
 	/* defensive sanity: ensure child elem_size set so vec_idx arithmetic works */
@@ -194,7 +207,7 @@ int	expand_simple_command(t_shell *state, t_ast_node *node,
 	vec_init(&ret->pre_assigns);
 	ret->pre_assigns.elem_size = sizeof(t_env);
 	vec_init(&ret->argv);
-	ret->argv.elem_size = sizeof(char *); // <--- store pointers
+	ret->argv.elem_size = sizeof(char *);
 	while (exp.i < node->children.len)
 	{
 		exp.curr = (t_ast_node *)vec_idx(&node->children, exp.i);
@@ -210,25 +223,21 @@ int	expand_simple_command(t_shell *state, t_ast_node *node,
 			ft_eprintf("debug: expand_simple_command unexpected node_type=%d at idx=%lu\n",
 				(int)exp.curr->node_type, (unsigned long)exp.i);
 #endif
-			return (1); /* unexpected node type — fail expansion */
+			return (1);
 		}
 		if (exp.exit_stat)
 			return (exp.exit_stat);
 		exp.i++;
 	}
 	/* If expansion produced only assignments and no argv (assignment-only form),
-	   apply those to the shell environment now to take ownership of their strings.
-	   This prevents leaks and double-free later when the temporary cmd is freed. */
+	   apply those to the shell environment now */
 	if (ret->argv.len == 0 && ret->pre_assigns.len > 0)
 	{
-		/* Pop each pre_assign and insert it into the shell env (transfer ownership) */
 		while (ret->pre_assigns.len)
 		{
 			t_env tmp = *(t_env *)vec_pop(&ret->pre_assigns);
-			/* ensure exported flag is preserved */
 			env_set(&state->env, tmp);
 		}
-		/* free the backing storage and reinit vector */
 		free(ret->pre_assigns.ctx);
 		vec_init(&ret->pre_assigns);
 	}
