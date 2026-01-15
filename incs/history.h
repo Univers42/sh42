@@ -14,7 +14,7 @@
 # define HISTORY_H
 
 /* Forward declaration to avoid circular includes */
-typedef struct s_shell t_shell;
+typedef struct s_shell	t_shell;
 
 /* History file name (stored in $HOME) */
 # ifndef HIST_FILE
@@ -44,7 +44,11 @@ t_string	parse_single_cmd(t_string hist, size_t *cur);
 t_vec		parse_hist_file(t_string hist);
 bool		worthy_of_being_remembered(t_shell *state);
 
-/* Readline history search setup */
+/* Readline history setup */
 void		setup_history_search(void);
+
+/* History expansion (!, !!, !word, !number, !-number) */
+char		*history_expand_line(t_shell *state, const char *input,
+				int *expanded);
 
 #endif

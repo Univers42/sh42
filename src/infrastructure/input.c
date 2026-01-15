@@ -56,7 +56,10 @@ bool is_empty_token_list(t_deque_tt *tokens)
 
 int readline_cmd(t_shell *state, char **prompt)
 {
-	int stat;
+	int		stat;
+	char	*expanded;
+	int		did_expand;
+	size_t	exp_len;
 
 	/* defensive: ensure readline buffer vector initialized */
 	if (!state->readline_buff.buff.ctx)
@@ -74,14 +77,41 @@ int readline_cmd(t_shell *state, char **prompt)
 	free(*prompt);
 	*prompt = 0;
 	if (stat == 0)
-	{
 		return (1);
-	}
 	if (stat == 2)
 	{
 		if (state->input_method != INP_READLINE)
 			state->should_exit = true;
 		return (2);
+	}
+	/* Perform history expansion on the input */
+	if (state->hist.hist_active && state->input.ctx && state->input.len > 0)
+	{
+		/* Null-terminate for expansion */
+		if (!vec_ensure_space_n(&state->input, 1))
+			return (0);
+		((char *)state->input.ctx)[state->input.len] = '\0';
+		expanded = history_expand_line(state, (char *)state->input.ctx,
+				&did_expand);
+		if (!expanded)
+		{
+			/* Expansion error - clear input and return as interrupted */
+			state->input.len = 0;
+			return (2);
+		}
+		if (did_expand)
+		{
+			/* Print the expanded command (without extra newline - it's in input) */
+			exp_len = ft_strlen(expanded);
+			/* Replace input with expanded version */
+			state->input.len = 0;
+			vec_push_str(&state->input, expanded);
+			/* Print expanded line so user sees what will run */
+			write(1, expanded, exp_len);
+			if (exp_len == 0 || expanded[exp_len - 1] != '\n')
+				write(1, "\n", 1);
+		}
+		free(expanded);
 	}
 	return (0);
 }
@@ -349,7 +379,7 @@ static void get_more_input_parser(t_shell *state,
 			/* print tokens for debugging */
 			print_tokens(tt);
 			/* set successful status for this debug run */
-			set_cmd_status(state, res_status(0));
+		 set_cmd_status(state, res_status(0));
 			/* clear token deque */
 			deque_clear(&tt->deqtok, NULL);
 			tt->looking_for = 0;

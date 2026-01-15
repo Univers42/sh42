@@ -1,5 +1,6 @@
-build/obj/infrastructure/helpers.o: src/infrastructure/helpers.c \
- incs/shell.h incs/alias.h vendor/libft/libft.h vendor/libft/include/ds.h \
+build/obj/infrastructure/history_expand.o: \
+ src/infrastructure/history_expand.c incs/shell.h incs/alias.h \
+ vendor/libft/libft.h vendor/libft/include/ds.h \
  vendor/libft/include/../srcs/ds/lists/ft_list.h \
  vendor/libft/include/../srcs/ds/doubly_linked_list/ft_doubly_list.h \
  vendor/libft/include/../srcs/ds/circular_linked_list/ft_circular_list.h \

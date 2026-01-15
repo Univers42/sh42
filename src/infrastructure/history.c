@@ -254,14 +254,19 @@ void	init_history(t_shell *state)
 	state->hist = (t_history){.append_fd = -1, .hist_active = true};
 	vec_init(&state->hist.hist_cmds);
 	state->hist.hist_cmds.elem_size = sizeof(char *);
+	/* Clear any existing readline history before loading from file */
+	rl_clear_history();
 	parse_history_file(state);
-	/* Setup readline for prefix-based history search */
+	/* Setup readline - use default navigation */
 	setup_history_search();
 }
 
 void	free_hist(t_shell *state)
 {
 	size_t	i;
+
+	/* Clear readline internal history first to prevent leaks */
+	rl_clear_history();
 
 	if (!state->hist.hist_cmds.ctx)
 		return ;
