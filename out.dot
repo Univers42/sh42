@@ -1,0 +1,46 @@
+digraph AST {
+	rankdir=TB;
+	node [fontname="Arial", fontsize=12];
+	edge [fontname="Arial", fontsize=10];
+	bgcolor="#F5F5F5";
+
+	n0 [label="AST_SIMPLE_LIST", style=filled, fillcolor="#DDA0DD", shape=box, penwidth=2];
+	n0 -> n3884205591 [label="0"];
+	n3884205591 [label="AST_COMMAND_PIPELINE", style=filled, fillcolor="#FFB6C1", shape=box, penwidth=2];
+	n3884205591 -> n1686060246 [label="0"];
+	n1686060246 [label="AST_COMMAND", style=filled, fillcolor="#F0E68C", shape=box, penwidth=2];
+	n1686060246 -> n1165020036 [label="0"];
+	n1165020036 [label="AST_SIMPLE_COMMAND", style=filled, fillcolor="#F0E68C", shape=box, penwidth=2];
+	n1165020036 -> n3225796074 [label="0"];
+	n3225796074 [label="AST_WORD", style=filled, fillcolor="#90EE90", shape=ellipse, penwidth=2];
+	n3225796074 -> n3681332228 [label="0"];
+	n3681332228 [label="AST_TOKEN\nTT_WORD: >find<", style=filled, fillcolor="#90EE90", shape=ellipse];
+	n1165020036 -> n198625723 [label="1"];
+	n198625723 [label="AST_WORD", style=filled, fillcolor="#90EE90", shape=ellipse, penwidth=2];
+	n198625723 -> n1124244491 [label="0"];
+	n1124244491 [label="AST_TOKEN\nTT_WORD: >.<", style=filled, fillcolor="#90EE90", shape=ellipse];
+	n1165020036 -> n1107239764 [label="2"];
+	n1107239764 [label="AST_WORD", style=filled, fillcolor="#90EE90", shape=ellipse, penwidth=2];
+	n1107239764 -> n944161309 [label="0"];
+	n944161309 [label="AST_TOKEN\nTT_WORD: >-type<", style=filled, fillcolor="#90EE90", shape=ellipse];
+	n1165020036 -> n3092938802 [label="3"];
+	n3092938802 [label="AST_WORD", style=filled, fillcolor="#90EE90", shape=ellipse, penwidth=2];
+	n3092938802 -> n1217236369 [label="0"];
+	n1217236369 [label="AST_TOKEN\nTT_WORD: >f<", style=filled, fillcolor="#90EE90", shape=ellipse];
+	n3884205591 -> n3481678829 [label="1"];
+	n3481678829 [label="AST_COMMAND", style=filled, fillcolor="#F0E68C", shape=box, penwidth=2];
+	n3481678829 -> n4007316555 [label="0"];
+	n4007316555 [label="AST_SIMPLE_COMMAND", style=filled, fillcolor="#F0E68C", shape=box, penwidth=2];
+	n4007316555 -> n2516667450 [label="0"];
+	n2516667450 [label="AST_WORD", style=filled, fillcolor="#90EE90", shape=ellipse, penwidth=2];
+	n2516667450 -> n1683881346 [label="0"];
+	n1683881346 [label="AST_TOKEN\nTT_WORD: >wc<", style=filled, fillcolor="#90EE90", shape=ellipse];
+	n4007316555 -> n1383296635 [label="1"];
+	n1383296635 [label="AST_WORD", style=filled, fillcolor="#90EE90", shape=ellipse, penwidth=2];
+	n1383296635 -> n1441763621 [label="0"];
+	n1441763621 [label="AST_TOKEN\nTT_WORD: >-l<", style=filled, fillcolor="#90EE90", shape=ellipse];
+
+	labelloc="t";
+	label="AST Visualization";
+	fontsize=20;
+}

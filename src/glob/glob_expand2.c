@@ -6,11 +6,35 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/22 11:11:45 by dlesieur          #+#    #+#             */
-/*   Updated: 2026/01/22 12:04:15 by dlesieur         ###   ########.fr       */
+/*   Updated: 2026/01/25 19:50:56 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "glob_private.h"
+#include <locale.h>
+
+static int	glob_strcmp(const void *a, const void *b)
+{
+	const char	*s1;
+	const char	*s2;
+
+	s1 = *(const char **)a;
+	s2 = *(const char **)b;
+	return (strcoll(s1, s2));
+}
+
+static void	glob_sort(t_vec *args)
+{
+	static int	locale_init = 0;
+
+	if (!locale_init)
+	{
+		setlocale(LC_COLLATE, "");
+		locale_init = 1;
+	}
+	if (args->len > 1)
+		qsort(args->ctx, args->len, sizeof(char *), glob_strcmp);
+}
 
 /*
 ** Check if token type allows glob expansion
@@ -71,7 +95,7 @@ t_vec	expand_word_glob(t_ast_node word)
 		vec_push(&args, &(char *){(char *)word_to_string(word).ctx});
 	glob_free_tokens(&glob);
 	if (!get_g_sig()->should_unwind)
-		ft_quicksort(&args);
+		glob_sort(&args);
 	if (get_g_sig()->should_unwind)
 		vec_destroy(&args, free_str_elem);
 	return (args);

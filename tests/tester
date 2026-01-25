@@ -10,11 +10,11 @@ if [[ $1 ]]; then
     )
 else
     test_lists=(
+		"globbing"
         "arith"
         "edge_cases"
 		"dylan_exec"
         "builtins"
-		"globbing"
 		"compound"
 		"crazy1"
 		"crazy2"
