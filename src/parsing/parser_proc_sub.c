@@ -32,11 +32,17 @@ static void	proc_sub_consume_and_append(t_deque_tt *tokens,
 	deque_pop_start(&tokens->deqtok);
 	if (cmd_str->len > 0)
 		vec_push_char(cmd_str, ' ');
-	vec_push_nstr(cmd_str, curr.start, curr.len);
+	if (curr.tt == TT_ARITH_START)
+		vec_push_str(cmd_str, "( (");
+	else if (curr.tt == TT_BRACE_LEFT)
+		vec_push_char(cmd_str, '(');
+	else
+		vec_push_nstr(cmd_str, curr.start, curr.len);
+	if (curr.tt == TT_ARITH_START || curr.tt == TT_BRACE_LEFT)
+		vec_push_char(cmd_str, ' ');
 }
 
-static int	handle_close_paren(t_deque_tt *tokens, t_string *cmd_str,
-							t_token curr, int *depth)
+static int	handle_close_paren(t_deque_tt *tokens, int *depth)
 {
 	if (*depth == 1)
 	{
@@ -45,8 +51,14 @@ static int	handle_close_paren(t_deque_tt *tokens, t_string *cmd_str,
 		return (1);
 	}
 	(*depth)--;
-	proc_sub_consume_and_append(tokens, cmd_str, curr);
 	return (0);
+}
+
+static void	append_close_paren(t_deque_tt *tokens,
+								t_string *cmd_str)
+{
+	deque_pop_start(&tokens->deqtok);
+	vec_push_str(cmd_str, " )");
 }
 
 /* Collect tokens inside process-substitution until matching ')' is found.
@@ -68,8 +80,9 @@ static int	collect_proc_sub_command(t_parser *parser,
 			return (1);
 		if (curr.tt == TT_BRACE_RIGHT)
 		{
-			if (handle_close_paren(tokens, cmd_str, curr, &depth))
+			if (handle_close_paren(tokens, &depth))
 				continue ;
+			append_close_paren(tokens, cmd_str);
 		}
 		else
 		{
