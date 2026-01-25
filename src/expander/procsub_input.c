@@ -14,13 +14,11 @@
 #include "sys.h"
 
 /* fork child, wire child's stdout to pipefd[1],
-exec preferred binary then /bin/sh */
+exec /bin/sh for the command */
 static pid_t	fork_and_exec_procsub_input(t_shell *state, int pipefd[2],
 						const char *cmd)
 {
 	pid_t		pid;
-	char *const	argv_ms[] = {(char *)PROC_SELF_EXE, (char *)CMD_OPT,
-		(char *)cmd, NULL};
 	char *const	argv_sh[] = {(char *)PATH_HELLISH, (char *)CMD_OPT,
 		(char *)cmd, NULL};
 	char		**envp;
@@ -33,8 +31,7 @@ static pid_t	fork_and_exec_procsub_input(t_shell *state, int pipefd[2],
 		close(pipefd[0]);
 		dup2(pipefd[1], STDOUT_FILENO);
 		close(pipefd[1]);
-		envp = get_envp(state, PROC_SELF_EXE);
-		execve(PROC_SELF_EXE, argv_ms, envp);
+		envp = get_envp(state, PATH_HELLISH);
 		execve(PATH_HELLISH, argv_sh, envp);
 		if (envp)
 			free_tab(envp);

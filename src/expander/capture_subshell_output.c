@@ -43,6 +43,7 @@ static char	*read_pipe_and_wait(pid_t pid, int readfd)
 	char		*ret;
 	size_t		nlen;
 	int			status;
+	size_t		i;
 
 	vec_init(&out);
 	out.elem_size = 1;
@@ -60,6 +61,13 @@ static char	*read_pipe_and_wait(pid_t pid, int readfd)
 	while (nlen > 0 && ret[nlen - 1] == '\n')
 		nlen--;
 	ret[nlen] = '\0';
+	i = 0;
+	while (i < nlen)
+	{
+		if (ret[i] == '\n')
+			ret[i] = ' ';
+		i++;
+	}
 	free(out.ctx);
 	return (ret);
 }

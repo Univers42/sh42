@@ -12,14 +12,17 @@
 
 #include "parser_private.h"
 
-static void	proc_sub_update_depth(t_token curr, int *depth)
+static int	proc_sub_get_depth_delta(t_token curr)
 {
+	if (curr.tt == TT_ARITH_START)
+		return (2);
 	if (curr.tt == TT_BRACE_LEFT
 		|| curr.tt == TT_PROC_SUB_IN
 		|| curr.tt == TT_PROC_SUB_OUT)
-		(*depth)++;
+		return (1);
 	else if (curr.tt == TT_BRACE_RIGHT)
-		(*depth)--;
+		return (-1);
+	return (0);
 }
 
 static void	proc_sub_consume_and_append(t_deque_tt *tokens,
@@ -32,6 +35,20 @@ static void	proc_sub_consume_and_append(t_deque_tt *tokens,
 	vec_push_nstr(cmd_str, curr.start, curr.len);
 }
 
+static int	handle_close_paren(t_deque_tt *tokens, t_string *cmd_str,
+							t_token curr, int *depth)
+{
+	if (*depth == 1)
+	{
+		deque_pop_start(&tokens->deqtok);
+		*depth = 0;
+		return (1);
+	}
+	(*depth)--;
+	proc_sub_consume_and_append(tokens, cmd_str, curr);
+	return (0);
+}
+
 /* Collect tokens inside process-substitution until matching ')' is found.
    On EOF sets parser->res = RES_MoreInput, tokens->looking_for = ')' and
    frees cmd_str.ctx; returns 1 on early EOF, 0 on success. */
@@ -40,6 +57,7 @@ static int	collect_proc_sub_command(t_parser *parser,
 								t_string *cmd_str)
 {
 	int		depth;
+	int		delta;
 	t_token	curr;
 
 	depth = 1;
@@ -48,11 +66,17 @@ static int	collect_proc_sub_command(t_parser *parser,
 		curr = *(t_token *)deque_peek(&tokens->deqtok);
 		if (proc_sub_handle_eof(parser, tokens, cmd_str, curr))
 			return (1);
-		proc_sub_update_depth(curr, &depth);
-		if (depth > 0)
-			proc_sub_consume_and_append(tokens, cmd_str, curr);
+		if (curr.tt == TT_BRACE_RIGHT)
+		{
+			if (handle_close_paren(tokens, cmd_str, curr, &depth))
+				continue ;
+		}
 		else
-			deque_pop_start(&tokens->deqtok);
+		{
+			delta = proc_sub_get_depth_delta(curr);
+			depth += delta;
+			proc_sub_consume_and_append(tokens, cmd_str, curr);
+		}
 	}
 	return (0);
 }
