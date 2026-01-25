@@ -13,7 +13,8 @@
 #include "expander_private.h"
 #include "sys.h"
 
-static pid_t	fork_and_exec_procsub(t_shell *state,
+/* fork child: wire child's stdin to pipefd[0], exec shell for the command */
+static pid_t	fork_and_exec_procsub_out(t_shell *state,
 								int pipefd[2],
 								const char *cmd)
 {
@@ -32,8 +33,6 @@ static pid_t	fork_and_exec_procsub(t_shell *state,
 		close(pipefd[0]);
 		envp = get_envp(state, PATH_HELLISH);
 		execve(PATH_HELLISH, argv_sh, envp);
-		if (envp)
-			free_tab(envp);
 		exit(127);
 	}
 	return (pid);
@@ -47,10 +46,10 @@ char	*create_procsub_output(t_shell *state, const char *cmd)
 	t_procsub_entry	entry;
 
 	if (!cmd || !*cmd)
-		return (ft_strdup(BLACK_HOLE));
+		return (ft_strdup("/dev/null"));
 	if (pipe(pipefd) == -1)
 		return (NULL);
-	pid = fork_and_exec_procsub(state, pipefd, cmd);
+	pid = fork_and_exec_procsub_out(state, pipefd, cmd);
 	if (pid == -1)
 	{
 		close(pipefd[0]);

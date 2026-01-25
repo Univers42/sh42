@@ -47,13 +47,10 @@ static char	*read_pipe_and_wait(pid_t pid, int readfd)
 
 	vec_init(&out);
 	out.elem_size = 1;
-	vec_append_fd(readfd, &out);
-	close(readfd);
+	(vec_append_fd(readfd, &out), close(readfd));
 	while (waitpid(pid, &status, 0) == -1 && errno == EINTR)
 		;
-	ret = malloc(out.len + 1);
-	if (!ret)
-		return (free(out.ctx), ft_strdup(""));
+	ret = xmalloc(out.len + 1);
 	if (out.len)
 		ft_memcpy(ret, out.ctx, out.len);
 	ret[out.len] = '\0';
@@ -61,15 +58,11 @@ static char	*read_pipe_and_wait(pid_t pid, int readfd)
 	while (nlen > 0 && ret[nlen - 1] == '\n')
 		nlen--;
 	ret[nlen] = '\0';
-	i = 0;
-	while (i < nlen)
-	{
+	i = -1;
+	while (++i < nlen)
 		if (ret[i] == '\n')
 			ret[i] = ' ';
-		i++;
-	}
-	free(out.ctx);
-	return (ret);
+	return (free(out.ctx), ret);
 }
 
 char	*capture_subshell_output(t_shell *state, const char *cmd)

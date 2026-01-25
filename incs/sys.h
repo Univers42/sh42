@@ -12,10 +12,10 @@
 
 #ifndef SYS_H
 # define SYS_H
-# define MSG_GETCWD_SHINIT "shell-init: error retrieving current directory:\
-						getcwd: cannot access parent directories:\
-						No such file or directory\nsh: 0: \
-						getcwd() failed: No such file or directory\n"
+# define MSG_GETCWD_SHINIT "shell-init: error retrieving current directory: \
+getcwd: cannot access parent directories: \
+No such file or directory\nsh: 0: \
+getcwd() failed: No such file or directory\n"
 # define HOME "HOME"
 # define PWD "PWD"
 # define OLDPWD "OLDPWD"
@@ -33,15 +33,15 @@
 # define IFS "IFS"
 # define TMP_DIR "/tmp"
 # define SHLVL "SHLVL"
-# define DFT_PATH "/usr/local/sbin:/usr/local/bin\
-					:/usr/sbin:/usr/bin:/sbin:/bin"
+# define DFT_PATH "/usr/local/sbin:/usr/local/bin:\
+/usr/sbin:/usr/bin:/sbin:/bin"
 # define PATH "PATH"
 # define ULTIMATE_ARG "_"
 # define MINISHELL "./minishell"
 # define EQ '='
 # define FB_SH "/bin/sh"
 //# define PATH_HELLISH "/usr/bin/hellish"
-# define PATH_HELLISH "//workspaces/sh42/build/bin/minishell"
+# define PATH_HELLISH "/home/dlesieur/Documents/sh42/build/bin/minishell"
 # define PROC_SELF_EXE "/proc/self/exe"
 # define BLACK_HOLE "/dev/null"
 # define CMD_OPT "-c"
@@ -58,9 +58,10 @@
 // Classes
 # define CLASSE_ALNUM "[:alnum:]"
 # define PAT_ALNUM "0123456789ABCDEFGHIJKLMNOPQRSTUV\
-						WXYZabcdefghijklmnopqrstuvwxyz"
+					WXYZabcdefghijklmnopqrstuvwxyz"
 # define CLASSE_ALPHA "[:alpha:]"
-# define PAT_ALPHA "ABCDEFGHIJKLMNOPQRSTUVWXYZZabcdefghijklmnopqrstuvwxyz"
+# define PAT_ALPHA "ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+					abcdefghijklmnopqrstuvwxyz"
 # define CLASSE_DIGIT "[:digit:]"
 # define PAT_DIGIT "0123456789"
 # define CLASSE_LOWER "[:lower:]"
@@ -76,18 +77,14 @@
 # define CLASSE_XDIGIT "[:xdigit:]"
 # define PAT_XDIGIT "0123456789ABCDEFabcdef"
 # define CLASSE_CNTRL "[:cntrl:]"
-# define PAT_CNTRL "\001\002\003\004\005\006\007\010\
-						\011\012\013\014\015\
-						\016\017\020\021\022\023\024\025\026\027\030\
-						\031\032\033\034\035\036\037\177"
+# define PAT_CNTRL "\001\002\003\004\005\006\007\010\011\012\013\014\015\
+\016\017\020\021\022\023\024\025\026\027\030\031\032\033\034\035\036\037\177"
 # define CLASSE_GRAPH "[:graph:]"
-# define PAT_GRAPH "!\"#$%&'()*+,-./0123456789:;<=>?@ \
-						ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ \
-						_`abcdefghijklmnopqrstuvwxyz{|}~"
+# define PAT_GRAPH "!\"#$%&'()*+,-./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 # define CLASSE_PRINT "[:print:]"
-# define PAT_PRINT " !\"#$%&'()*+,-./0123456789:;\
-						<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]\
-						^_`abcdefghijklmnopqrstuvwxyz{|}~"
+# define PAT_PRINT " !\"#$%&'()*+,-./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 # define TMP_HC_DIR "/tmp/heredoc_"
 # define STRIP_HEREDOC "<<-"
 # define PIPE_HEREDOC_PROMPT "pipe_hereodoc> "

@@ -47,7 +47,9 @@ void	cleanup_proc_subs(t_shell *state)
 		if (entry->fd >= 0)
 			close(entry->fd);
 		if (entry->pid > 0)
+		{
 			waitpid(entry->pid, &status, 0);
+		}
 		free(entry->path);
 		i++;
 	}

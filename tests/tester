@@ -10,6 +10,7 @@ if [[ $1 ]]; then
     )
 else
     test_lists=(
+		"redir"
 		"globbing"
         "arith"
         "edge_cases"
@@ -22,7 +23,6 @@ else
 		"pipe"
 		"sq"
 		"dq"
-		"redir"
         "pipes"
         "redirects"
         "extras"

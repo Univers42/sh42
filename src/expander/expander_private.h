@@ -57,6 +57,8 @@ void		assignment_word_to_word(t_ast_node *node);
 char		*create_procsub_input(t_shell *state, const char *cmd);
 char		*create_procsub_output(t_shell *state, const char *cmd);
 char		*expand_proc_sub(t_shell *state, t_ast_node *node);
+char		*create_procsub_output(t_shell *state, const char *cmd);
+char		*expand_proc_sub(t_shell *state, t_ast_node *node);
 void		procsub_close_fds_parent(t_shell *state);
 void		cleanup_proc_subs(t_shell *state);
 bool		create_redir_4(t_tt tt, char *fname, t_redir *ret, int src_fd);

@@ -46,25 +46,24 @@ void	expand_word(t_shell *state, t_ast_node *node,
 char	*expand_proc_sub(t_shell *state, t_ast_node *node)
 {
 	t_token		*tok;
-	t_ast_node	*cmd_word;
-	t_string	cmd_str;
+	char		*cmd;
 	char		*result;
 	bool		is_input;
 
-	if (!node || node->node_type != AST_PROC_SUB || node->children.len < 2)
+	if (!node || node->node_type != AST_PROC_SUB || node->children.len < 1)
 		return (NULL);
 	tok = &((t_ast_node *)node->children.ctx)[0].token;
-	cmd_word = &((t_ast_node *)node->children.ctx)[1];
 	is_input = (tok->tt == TT_PROC_SUB_IN);
-	cmd_str = word_to_string(*cmd_word);
-	if (!cmd_str.ctx)
-		return (ft_strdup(BLACK_HOLE));
-	if (!vec_ensure_space_n(&cmd_str, 1))
-		return (free(cmd_str.ctx), NULL);
-	((char *)cmd_str.ctx)[cmd_str.len] = '\0';
+	/* Token lexeme is like ">(cmd)" or "<(cmd)", extract just "cmd" */
+	if (tok->len <= 3)
+		return (ft_strdup("/dev/null"));
+	cmd = ft_strndup(tok->start + 2, tok->len - 3);
+	if (!cmd)
+		return (ft_strdup("/dev/null"));
 	if (is_input)
-		result = create_procsub_input(state, (char *)cmd_str.ctx);
+		result = create_procsub_input(state, cmd);
 	else
-		result = create_procsub_output(state, (char *)cmd_str.ctx);
-	return (free(cmd_str.ctx), result);
+		result = create_procsub_output(state, cmd);
+	free(cmd);
+	return (result);
 }

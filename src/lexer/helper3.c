@@ -66,6 +66,31 @@ static void	init_ops_group3(t_op_map ops[])
 	ops[15] = (t_op_map){0, TT_END};
 }
 
+static int	consume_proc_sub(char **str)
+{
+	int		depth;
+	char	*p;
+
+	depth = 1;
+	p = *str;
+	while (*p && depth > 0)
+	{
+		if (*p == '\'')
+			advance_squoted(&p);
+		else if (*p == '"')
+			advance_dquoted(&p);
+		else
+		{
+			if (*p == '(')
+				depth++;
+			else if (*p == ')')
+				depth--;
+			p++;
+		}
+	}
+	return (p - *str);
+}
+
 void	parse_op(t_deque_tt *tokens, char **str)
 {
 	char		*start;
@@ -88,6 +113,13 @@ void	parse_op(t_deque_tt *tokens, char **str)
 	op_idx = longest_matching_str(operators, *str);
 	ft_assert(op_idx != -1);
 	*str += ft_strlen(operators[op_idx].str);
-	tmp = create_token(start, (int)(*str - start), operators[op_idx].t);
+	if (operators[op_idx].t == TT_PROC_SUB_IN
+		|| operators[op_idx].t == TT_PROC_SUB_OUT)
+	{
+		*str += consume_proc_sub(str);
+		tmp = create_token(start, (int)(*str - start), operators[op_idx].t);
+	}
+	else
+		tmp = create_token(start, (int)(*str - start), operators[op_idx].t);
 	deque_push_end(&tokens->deqtok, &tmp);
 }
