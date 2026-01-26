@@ -283,7 +283,7 @@ Throughout this evolution, the guiding principles were:
 
 ## 🛠 Use Of AI
 
-> to fill in ...
+- 
 
 ---
 
