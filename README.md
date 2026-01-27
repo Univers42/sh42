@@ -1,5 +1,7 @@
 # 🐚 sh42 – A Modern Educational Shell
 
+_This project was created as part of the 42 curriculum by dlesieur, alcacere_.
+
 > A from‑scratch, almost‑POSIX shell written in C, designed to be **hackable**,
 > **observable**, and **pleasant** to use.
 
@@ -55,14 +57,14 @@ You don’t have to replace your login shell to experiment. A safe way to test:
 
 ```sh
 # From your usual shell
-$ ./sh42
-sh42$ echo "Hello from sh42"
+$ ./minishell
+minishell$ echo "Hello from minishell"
 ```
 
 You can exit back to your normal shell with:
 
 ```sh
-sh42$ exit
+minishell$ exit
 ```
 
 ### 3. (Optional) Use as Your Login Shell
@@ -77,21 +79,21 @@ sh42$ exit
    /home/you/sh42
    $ ls sh42
    # ...
-   $ which ./sh42
-   /home/you/sh42/sh42
+   $ which ./minishell
+   /home/you/sh42/build/bin/minishell
    ```
 
 2. (System‑wide) You would normally add this path to `/etc/shells`.
 3. Change your shell for your user:
 
    ```sh
-   chsh -s /home/you/sh42/sh42
+   chsh -s /home/you/sh42/build/bin/minishell
    ```
 
 4. Log out / log in again, or open a new terminal.
 
 Because this is a personal/educational shell, it is usually better to keep it
-as an **alternative shell** you launch explicitly (`./sh42`) rather than
+as an **alternative shell** you launch explicitly (`./minishell`) rather than
 replacing `/bin/bash` or `/bin/zsh` everywhere.
 
 ---
@@ -221,7 +223,7 @@ scenarios:
 
   ```sh
   make
-  ./sh42
+  ./minishell
   ```
 
 - **Debugging internals** – enable lexer/parser debug modes via options or
@@ -280,10 +282,27 @@ Throughout this evolution, the guiding principles were:
 - **Room to grow** – it should be possible to tighten POSIX compliance or add
   features without tearing everything apart.
 
+## 📚 Resources
+
+References
+Here are the classic references and documentation used to build this shell:
+
+**POSIX Standard (Shell & Utilities)** The Open Group Base Specifications Issue 7 - The primary guide 
+for grammar and behavior.
+
+**GNU Bash Manual: Bash Reference Manual** - Used for comparing standard behavior vs. extensions.
+
+**Stephen Brennan's Guide: Write a Shell in C** - A classic introductory tutorial for shell logic.
+
+**Koen de Vleeschauwer: Unofficial Bash Strict Mode** - Insights into shell error handling.
 
 ## 🛠 Use Of AI
 
-> to fill in ...
+**Documentation & Research** - Used to clarify ambiguities in edge cases where conventions differ and to research complex topics not detailed in standard textbooks, ensuring realistic solutions within the project's scope.
+
+**Concept Explanation** - Served as a study aid to solidify the understanding of abstract functionalities and architectural requirements necessary for building a shell.
+
+**Code Generation** Not used for logic implementation; limited to clarification and study.
 
 ---
 
