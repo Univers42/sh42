@@ -298,17 +298,11 @@ for grammar and behavior.
 
 ## 🛠 Use Of AI
 
-<<<<<<< .merge_file_OePHUV
-- 
-=======
 **Documentation & Research** - Used to clarify ambiguities in edge cases where conventions differ and to research complex topics not detailed in standard textbooks, ensuring realistic solutions within the project's scope.
 
 **Concept Explanation** - Served as a study aid to solidify the understanding of abstract functionalities and architectural requirements necessary for building a shell.
 
 **Code Generation** Not used for logic implementation; limited to clarification and study.
->>>>>>> .merge_file_9wiQcl
-
----
 
 ## ❤️ Why We Like Working on It
 
