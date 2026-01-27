@@ -292,9 +292,12 @@ for grammar and behavior.
 
 **GNU Bash Manual: Bash Reference Manual** - Used for comparing standard behavior vs. extensions.
 
+**Aditya Y. Bhargava: Grokking Algorithms** - Basics of algoritms implementation and understanding.
+
 **Stephen Brennan's Guide: Write a Shell in C** - A classic introductory tutorial for shell logic.
 
 **Koen de Vleeschauwer: Unofficial Bash Strict Mode** - Insights into shell error handling.
+
 
 ## 🛠 Use Of AI
 
