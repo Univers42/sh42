@@ -1,0 +1,10 @@
+test where asignment does not work
+
+$> echo a=1;
+asignment fails only with "echo" at this point.
+export and comparison operations whit '=' do work propely.
+
+echo also works whit comparison operations such as:
+$> echo $((1 == 2))
+and:
+$> echo "a=1"

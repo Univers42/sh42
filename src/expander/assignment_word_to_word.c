@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   assignment_word_to_word.c                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: alcacere <alcacere@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/22 19:26:49 by marvin            #+#    #+#             */
-/*   Updated: 2026/01/27 18:58:57 by alcacere         ###   ########.fr       */
+/*   Created: 2026/01/27 19:50:20 by alcacere          #+#    #+#             */
+/*   Updated: 2026/01/27 19:50:26 by alcacere         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #include "expander_private.h"
 
 void	assignment_word_to_word(t_ast_node *node)
@@ -21,7 +22,8 @@ void	assignment_word_to_word(t_ast_node *node)
 	ret = (t_ast_node){.node_type = AST_WORD};
 	vec_init(&ret.children);
 	ret.children.elem_size = sizeof(t_ast_node);
-	(ft_assert(node->node_type == AST_ASSIGNMENT_WORD), ft_assert(node->children.len == 2));
+	ft_assert(node->node_type == AST_ASSIGNMENT_WORD);
+	ft_assert(node->children.len == 2);
 	left = ((t_ast_node *)node->children.ctx)[0];
 	right = ((t_ast_node *)node->children.ctx)[1];
 	left.token.len++;
@@ -38,4 +40,3 @@ void	assignment_word_to_word(t_ast_node *node)
 	free(node->children.ctx);
 	*node = ret;
 }
-
